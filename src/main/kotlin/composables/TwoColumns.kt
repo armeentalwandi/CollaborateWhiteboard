@@ -1,17 +1,25 @@
 package composables
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.Key.Companion.R
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -30,7 +38,6 @@ fun TwoColumnLayout() {
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .background(Color.Cyan)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
@@ -41,7 +48,10 @@ fun TwoColumnLayout() {
                         selectButtonState = false
                         drawShapeButtonState = false
                     },
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).background(if (drawButtonState) Color.LightGray else Color.Transparent)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .background(if (drawButtonState) Color.LightGray else Color.Transparent)
                 ) {
                     Image(
                         painter = painterResource("pen.svg"),
@@ -57,7 +67,10 @@ fun TwoColumnLayout() {
                         selectButtonState = false
                         drawShapeButtonState = false
                     },
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).background(if (eraseButtonState) Color.LightGray else Color.Transparent)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .background(if (eraseButtonState) Color.LightGray else Color.Transparent)
                 ) {
                     Image(
                         painter = painterResource("eraser.svg"),
@@ -73,7 +86,10 @@ fun TwoColumnLayout() {
                         selectButtonState = true
                         drawShapeButtonState = false
                     },
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).background(if (selectButtonState) Color.LightGray else Color.Transparent)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .background(if (selectButtonState) Color.LightGray else Color.Transparent)
                 ) {
                     Image(
                         painter = painterResource("select.svg"),
@@ -89,7 +105,10 @@ fun TwoColumnLayout() {
                         selectButtonState = false
                         drawShapeButtonState = true
                     },
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).background(if (drawShapeButtonState) Color.LightGray else Color.Transparent)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .background(if (drawShapeButtonState) Color.LightGray else Color.Transparent)
                 ) {
                     Image(
                         painter = painterResource("shapes.svg"),
@@ -104,11 +123,17 @@ fun TwoColumnLayout() {
                 modifier = Modifier
                     .weight(4f)
                     .fillMaxHeight()
-                    .background(Color.White)
                     .padding(16.dp)
-                    .background(Color.Magenta)
             ) {
                 // Canvas or right column content here
+
+                Canvas(modifier = Modifier.fillMaxSize().background(Color.White),
+                    onDraw = {
+                        // Sample Drawings
+                        drawCircle(Color.Blue, 50f)
+                        drawLine(Color.Magenta, Offset(10f,10f), Offset(200f,200f))
+                    }
+                )
 
             }
         }
