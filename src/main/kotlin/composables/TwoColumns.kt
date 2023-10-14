@@ -126,14 +126,7 @@ fun TwoColumnLayout() {
                     .padding(16.dp)
             ) {
                 // Canvas or right column content here
-
-                Canvas(modifier = Modifier.fillMaxSize().background(Color.White),
-                    onDraw = {
-                        // Sample Drawings
-                        drawCircle(Color.Blue, 50f)
-                        drawLine(Color.Magenta, Offset(10f,10f), Offset(200f,200f))
-                    }
-                )
+                Whiteboard()
 
             }
         }

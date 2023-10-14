@@ -5,10 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="53874bf5-bdc8-41bd-a0eb-37a6a81c0c19" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/models/Line.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/AppengerWhiteboard.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/composables/TwoColumns.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/composables/TwoColumns.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/composables/Whiteboard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/composables/Whiteboard.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,10 +36,16 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Kotlin File" />
+        <option value="Kotlin Data Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="create-skeleton-13" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -58,7 +64,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "create-skeleton-13",
+    "git-widget-placeholder": "15-implement-free-drawing",
     "last_opened_file_path": "/Users/harshdave/University/3B/CS 346/theappengers",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
