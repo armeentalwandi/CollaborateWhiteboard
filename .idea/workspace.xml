@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="53874bf5-bdc8-41bd-a0eb-37a6a81c0c19" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/models/Line.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/AppengerWhiteboard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/AppengerWhiteboard.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/composables/ColourPicker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/composables/ColourPicker.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/composables/TwoColumns.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/composables/TwoColumns.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/composables/Whiteboard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/composables/Whiteboard.kt" afterDir="false" />
     </list>
@@ -66,6 +67,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "15-implement-free-drawing",
     "last_opened_file_path": "/Users/harshdave/University/3B/CS 346/theappengers",
+    "node.js.selected.package.tslint": "(autodetect)",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
