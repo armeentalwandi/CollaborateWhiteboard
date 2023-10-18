@@ -22,12 +22,12 @@ fun TwoColumnLayout() {
             Row(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                // Left Column
                 var drawButtonState by remember { mutableStateOf(true) }
                 var eraseButtonState by remember { mutableStateOf(false) }
                 var selectButtonState by remember { mutableStateOf(false) }
                 var drawShapeButtonState by remember { mutableStateOf(false) }
 
+                // Left Column
                 Column(
                     modifier = Modifier
                         .weight(1f)
