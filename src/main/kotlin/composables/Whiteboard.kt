@@ -31,12 +31,22 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import models.Line
+import models.Stroke
+import java.util.UUID
 
 @Composable
-fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, /*strokeWidth: Float=1f,*/ shape: Shape? = null) {
+fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, shape: Shape? = null) {
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
     var colour by remember { mutableStateOf(Color.Red) }
+
     val lines = remember { mutableStateListOf<Line>() }
+    val strokes = remember { mutableStateListOf<Stroke>() }
+    strokes.forEach {
+        println(it)
+    }
+
+    var currentStroke: Stroke? by remember { mutableStateOf(null) }
+
     var canvasSize by remember { mutableStateOf(Size(0f, 0f)) }
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
 
@@ -80,46 +90,78 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
         }
         .background(Color.White)
         .pointerInput(selectedMode) {
-                            detectDragGestures { change, dragAmount ->
-//                                change.consume()
-                                if (selectedMode == "DRAW_LINES") {
+                            detectDragGestures (
+                                onDragStart = { offset ->
+                                    if (selectedMode == "DRAW_LINES") {
+                                        currentStroke = Stroke(offset, userId = UUID.randomUUID(), lines = mutableListOf())
+                                    }
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
                                     val startPosition = change.position - dragAmount
                                     val endPosition = change.position
+                                    if (isWithinCanvasBounds(startPosition, canvasSize) && isWithinCanvasBounds(endPosition, canvasSize)) {
+                                        if (selectedMode == "DRAW_LINES") {
+                                            // Check if the line is within the canvas bounds
+                                                val line = Line(
+                                                    id = if (lines.size > 0) { lines.last().id + 1 } else {0},
+                                                    color = colour,
+                                                    startOffset = startPosition,
+                                                    endOffset = endPosition,
+                                                    strokeWidth = strokeSize.toDp()
+                                                )
+                                                currentStroke?.lines?.add(line)
+                                                lines.add(line)
 
-                                    // Check if the line is within the canvas bounds
-                                    if (isWithinCanvasBounds(startPosition, canvasSize) && isWithinCanvasBounds(
-                                            endPosition,
-                                            canvasSize
-                                        )
-                                    ) {
-                                        val line = Line(
-                                            color = colour,
-                                            startOffset = startPosition,
-                                            endOffset = endPosition,
-                                            strokeWidth = strokeSize.toDp()
-                                        )
-                                        lines.add(line)
+                                        } else if (selectedMode == "ERASE") {
+                                            // ERASE LOGIC
+
+                                            // Find if any stroke has overlapping lines.
+                                            var eraseableStroke: Stroke? = null
+                                            for (stroke in strokes) {
+                                                for (line in stroke.lines) {
+                                                    if (doLinesIntersect(startPosition, endPosition, line.startOffset, line.endOffset)) {
+                                                        eraseableStroke = stroke
+                                                        break
+                                                    }
+                                                }
+                                            }
+
+                                            if (eraseableStroke != null) {
+                                                strokes.remove(eraseableStroke)
+                                                eraseableStroke.lines.forEach {
+                                                    lines.remove(it)
+                                                }
+                                            }
+
+                                        } else if (selectedMode == "DRAW_SHAPES") {
+                                            // DRAW A SHAPE LOGIC
+                                        } else if (selectedMode == "SELECT_LINES") {
+                                            // SELECT ANYTHING WITHIN THE BOUNDS OF THE SELECTION
+                                        }
                                     }
-                                } else if (selectedMode == "ERASE") {
-                                    // ERASE LOGIC
-                                } else if (selectedMode == "DRAW_SHAPES") {
-                                    // DRAW A SHAPE LOGIC
-                                } else if (selectedMode == "SELECT_LINES") {
-                                    // SELECT ANYTHING WITHIN THE BOUNDS OF THE SELECTION
+                                },
+                                onDragEnd = {
+                                    if (selectedMode == "DRAW_LINES") {
+                                        currentStroke?.endOffset = currentStroke?.lines?.last()?.endOffset!!
+                                        strokes.add(currentStroke!!)
+                                        currentStroke = null
+                                    }
                                 }
-                            }
+                            )
         },
     ) {
 
         lines.forEach {line ->
-            drawLine(
-                color = line.color,
-                start = line.startOffset,
-                end = line.endOffset,
-                strokeWidth = line.strokeWidth.toPx(),
-                cap = StrokeCap.Round
-            )
-        }
+                drawLine(
+                    color = line.color,
+                    start = line.startOffset,
+                    end = line.endOffset,
+                    strokeWidth = line.strokeWidth.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
+
     }
 
     if (colourPickerDialog) {
@@ -144,6 +186,33 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
     }
 
 }
+
+private fun doLinesIntersect(line1start: Offset, line1end: Offset, line2start: Offset, line2end: Offset): Boolean {
+    // Calculate the vectors representing the line segments
+    val vector1 = line1end - line1start
+    val vector2 = line2end - line2start
+
+    // Calculate the cross product of the two vectors
+    val crossProduct1 = (line2start.y - line1start.y) * vector1.x - (line2start.x - line1start.x) * vector1.y
+    val crossProduct2 = (line2start.y - line1start.y) * vector2.x - (line2start.x - line1start.x) * vector2.y
+
+    // Calculate the dot product of the two vectors
+    val dotProduct1 = (line2start.x - line1start.x) * vector1.x + (line2start.y - line1start.y) * vector1.y
+    val dotProduct2 = (line2end.x - line1start.x) * vector1.x + (line2end.y - line1start.y) * vector1.y
+
+    // Check if the line segments are collinear (dot product is negative)
+    if (dotProduct1 < 0 || dotProduct2 < 0) {
+        return false
+    }
+
+    // Check if the line segments overlap
+    if (crossProduct1 * crossProduct2 >= 0) {
+        return false
+    }
+
+    return true
+}
+
 
 private fun isWithinCanvasBounds(offset: Offset, canvasSize: Size): Boolean {
     return offset.x >= 0f && offset.x <= canvasSize.width && offset.y >= 0f && offset.y <= canvasSize.height
