@@ -20,17 +20,6 @@ fun TwoColumnLayout() {
             modifier = Modifier.fillMaxSize()
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Black)
-            ) {
-                // Spacer to match the size of the first column
-                Spacer(modifier = Modifier
-                    .width(1f.dp) // Take up all the available horizontal space
-                    .background(Color.Transparent)
-                )
-            }
-            Row(
                 modifier = Modifier.fillMaxSize(),
             ) {
                 // Left Column
@@ -144,7 +133,7 @@ fun TwoColumnLayout() {
                         "SELECT_LINES"
                     }
 
-                    Whiteboard(selectedMode=selectedMode, color = Color.Red)
+                    Whiteboard(selectedMode=selectedMode)
 
                 }
             }

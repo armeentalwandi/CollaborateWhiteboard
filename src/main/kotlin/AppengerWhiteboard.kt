@@ -12,7 +12,7 @@ fun App() {
 
 fun main() = application {
     Window(
-        title = "Appengers Whiteboard",
+        title = "Appenger's Whiteboard",
         onCloseRequest = ::exitApplication
     ) {
         App()
