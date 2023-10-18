@@ -120,7 +120,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
                                             var eraseableStroke: Stroke? = null
                                             for (stroke in strokes) {
                                                 for (line in stroke.lines) {
-                                                    if (doLinesIntersect(startPosition, endPosition, line.startOffset, line.endOffset)) {
+                                                    if (doLinesCross(startPosition, endPosition, line.startOffset, line.endOffset)) {
                                                         eraseableStroke = stroke
                                                         break
                                                     }
@@ -187,31 +187,38 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
 
 }
 
-private fun doLinesIntersect(line1start: Offset, line1end: Offset, line2start: Offset, line2end: Offset): Boolean {
-    // Calculate the vectors representing the line segments
-    val vector1 = line1end - line1start
-    val vector2 = line2end - line2start
+private fun doLinesCross(line1start: Offset, line1end: Offset, line2start: Offset, line2end: Offset): Boolean {
+    // Calculate the direction of the lines
+    val a1 = line1end.y - line1start.y
+    val b1 = line1start.x - line1end.x
+    val c1 = a1 * line1start.x + b1 * line1start.y
 
-    // Calculate the cross product of the two vectors
-    val crossProduct1 = (line2start.y - line1start.y) * vector1.x - (line2start.x - line1start.x) * vector1.y
-    val crossProduct2 = (line2start.y - line1start.y) * vector2.x - (line2start.x - line1start.x) * vector2.y
+    val a2 = line2end.y - line2start.y
+    val b2 = line2start.x - line2end.x
+    val c2 = a2 * line2start.x + b2 * line2start.y
 
-    // Calculate the dot product of the two vectors
-    val dotProduct1 = (line2start.x - line1start.x) * vector1.x + (line2start.y - line1start.y) * vector1.y
-    val dotProduct2 = (line2end.x - line1start.x) * vector1.x + (line2end.y - line1start.y) * vector1.y
+    val determinant = a1 * b2 - a2 * b1
 
-    // Check if the line segments are collinear (dot product is negative)
-    if (dotProduct1 < 0 || dotProduct2 < 0) {
+    // If the determinant is 0, the lines are parallel and won't intersect
+    if (determinant == 0f) {
         return false
     }
 
-    // Check if the line segments overlap
-    if (crossProduct1 * crossProduct2 >= 0) {
-        return false
+    // Calculate the intersection point
+    val intersectX = (b2 * c1 - b1 * c2) / determinant
+    val intersectY = (a1 * c2 - a2 * c1) / determinant
+
+    // Check if the intersection point lies within both line segments
+    if (intersectX in minOf(line1start.x, line1end.x)..maxOf(line1start.x, line1end.x) &&
+        intersectY in minOf(line1start.y, line1end.y)..maxOf(line1start.y, line1end.y) &&
+        intersectX in minOf(line2start.x, line2end.x)..maxOf(line2start.x, line2end.x) &&
+        intersectY in minOf(line2start.y, line2end.y)..maxOf(line2start.y, line2end.y)) {
+        return true
     }
 
-    return true
+    return false
 }
+
 
 
 private fun isWithinCanvasBounds(offset: Offset, canvasSize: Size): Boolean {
