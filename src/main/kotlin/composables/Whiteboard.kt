@@ -2,20 +2,14 @@ package composables
 
 import ColorPicker
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -24,13 +18,13 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+
 import models.Line
+import models.ShapeType
 import models.Action
 import models.Stroke
 import java.util.UUID
@@ -46,6 +40,8 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
     val history = remember { mutableStateListOf<Action>() }
     val redoStack = remember { mutableStateListOf<Action>() }
+    var selectedShapeType by remember { mutableStateOf<ShapeType?>(null)  }
+    var shapeSelectionDialog by remember { mutableStateOf(false) }
 
     fun undo() {
         if (history.isNotEmpty()) {
@@ -64,6 +60,8 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
         }
     }
 
+
+    println("Selected Mode: $selectedMode")
     fun redo() {
         if (redoStack.isNotEmpty()) {
             val actionToRedo = redoStack.removeLast()
@@ -113,8 +111,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
 
         TextButton(
             onClick = {
-                  println("Colour Button Clicked")
-                    colourPickerDialog = true
+                colourPickerDialog = true
             },
             modifier = Modifier.background(colour).weight(1f)
         ) {}
@@ -196,16 +193,37 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
     ) {
 
         lines.forEach {line ->
-                drawLine(
-                    color = line.color,
-                    start = line.startOffset,
-                    end = line.endOffset,
-                    strokeWidth = line.strokeWidth.toPx(),
-                    cap = StrokeCap.Round
+            drawLine(
+                color = line.color,
+                start = line.startOffset,
+                end = line.endOffset,
+                strokeWidth = line.strokeWidth.toPx(),
+                cap = StrokeCap.Round
+            )
+        }
+
+        when (selectedShapeType) {
+            ShapeType.Rectangle -> {
+                drawRect(
+                    color = colour,
+                    topLeft = Offset(100f, 100f), // Example position
+                    size = Size(100f, 100f) // Example size
                 )
             }
-
+            ShapeType.Circle -> {
+                drawCircle(
+                    color = colour,
+                    center = Offset(200f, 200f), // Example position
+                    radius = 50f // Example radius
+                )
+            }
+            ShapeType.Triangle -> {
+                // Drawing triangle logic (you can use drawPath for this)
+            }
+            null -> Unit
+        }
     }
+
 
     if (colourPickerDialog) {
         Dialog(
