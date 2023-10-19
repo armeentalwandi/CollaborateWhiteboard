@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import models.Line
+import models.Action
 import models.Stroke
 import java.util.UUID
 
@@ -38,24 +39,64 @@ import java.util.UUID
 fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, shape: Shape? = null) {
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
     var colour by remember { mutableStateOf(Color.Red) }
-
     val lines = remember { mutableStateListOf<Line>() }
     val strokes = remember { mutableStateListOf<Stroke>() }
-    strokes.forEach {
-        println(it)
-    }
-
     var currentStroke: Stroke? by remember { mutableStateOf(null) }
-
     var canvasSize by remember { mutableStateOf(Size(0f, 0f)) }
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
+    val history = remember { mutableStateListOf<Action>() }
+    val redoStack = remember { mutableStateListOf<Action>() }
 
-    println("Selected Mode: $selectedMode")
+    fun undo() {
+        if (history.isNotEmpty()) {
+            val lastAction = history.removeLast()
+            when (lastAction) {
+                is Action.AddStroke -> {
+                    strokes.remove(lastAction.stroke)
+                    lines.removeAll(lastAction.stroke.lines)
+                }
+                is Action.ChangeColor -> {
+                    // Restore to the previous color or handle accordingly
+                }
+                // ... handle other action types
+            }
+            redoStack.add(lastAction)  // Push to redo stack
+        }
+    }
+
+    fun redo() {
+        if (redoStack.isNotEmpty()) {
+            val actionToRedo = redoStack.removeLast()
+            when (actionToRedo) {
+                is Action.AddStroke -> {
+                    strokes.add(actionToRedo.stroke)
+                    lines.addAll(actionToRedo.stroke.lines)
+                }
+                is Action.ChangeColor -> {
+                    // Apply the color change again
+                }
+                // ... handle other action types
+            }
+            history.add(actionToRedo)  // Push back to history
+        }
+    }
+
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+
+        Button(onClick = { undo() }, enabled = history.isNotEmpty()) {
+            Text("Undo")
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))  // Add some space between the buttons
+
+        Button(onClick = { redo() }, enabled = redoStack.isNotEmpty()) {
+            Text("Redo")
+        }
+
         Spacer(modifier = Modifier.weight(1f)) // Dynamic spacing to push the slider to the left
 
         Slider(
@@ -103,15 +144,15 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
                                     if (isWithinCanvasBounds(startPosition, canvasSize) && isWithinCanvasBounds(endPosition, canvasSize)) {
                                         if (selectedMode == "DRAW_LINES") {
                                             // Check if the line is within the canvas bounds
-                                                val line = Line(
-                                                    id = if (lines.size > 0) { lines.last().id + 1 } else {0},
-                                                    color = colour,
-                                                    startOffset = startPosition,
-                                                    endOffset = endPosition,
-                                                    strokeWidth = strokeSize.toDp()
-                                                )
-                                                currentStroke?.lines?.add(line)
-                                                lines.add(line)
+                                            val line = Line(
+                                                id = if (lines.size > 0) { lines.last().id + 1 } else {0},
+                                                color = colour,
+                                                startOffset = startPosition,
+                                                endOffset = endPosition,
+                                                strokeWidth = strokeSize.toDp()
+                                            )
+                                            currentStroke?.lines?.add(line)
+                                            lines.add(line)
 
                                         } else if (selectedMode == "ERASE") {
                                             // ERASE LOGIC
@@ -145,6 +186,8 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
                                     if (selectedMode == "DRAW_LINES") {
                                         currentStroke?.endOffset = currentStroke?.lines?.last()?.endOffset!!
                                         strokes.add(currentStroke!!)
+                                        history.add(Action.AddStroke(currentStroke!!))
+                                        redoStack.clear()  // Clear redo stack when a new action is done
                                         currentStroke = null
                                     }
                                 }
