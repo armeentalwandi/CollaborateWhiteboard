@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import java.util.UUID
 
 data class Line(
+    val id: Int = 0,
     val startOffset: Offset,
     val endOffset: Offset,
     val color: Color = Color.Black,
