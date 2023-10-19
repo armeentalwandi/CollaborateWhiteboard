@@ -2,20 +2,13 @@ package composables
 
 import ColorPicker
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -24,21 +17,25 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+
 import models.Line
+import models.ShapeType
 
 @Composable
-fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, /*strokeWidth: Float=1f,*/ shape: Shape? = null) {
+fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, shape: Shape? = null) {
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
     var colour by remember { mutableStateOf(Color.Red) }
     val lines = remember { mutableStateListOf<Line>() }
     var canvasSize by remember { mutableStateOf(Size(0f, 0f)) }
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
+
+    var selectedShapeType by remember { mutableStateOf<ShapeType?>(null)  }
+    var shapeSelectionDialog by remember { mutableStateOf(false) }
+
 
     println("Selected Mode: $selectedMode")
 
@@ -60,14 +57,25 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
 
         Spacer(modifier = Modifier.weight(1f)) // Dynamic spacing between the slider and the row
 
-        TextButton(
-            onClick = {
-                  println("Colour Button Clicked")
+        if(!colourPickerDialog && selectedMode == "DRAW_LINES") {
+            TextButton(
+                onClick = {
+                    println("Colour Button Clicked")
                     colourPickerDialog = true
-            },
-            modifier = Modifier.background(colour).weight(1f)
-        ) {}
+                },
+                modifier = Modifier.background(colour).weight(1f)
+            ) {}
+        }
 
+        if (!shapeSelectionDialog && selectedMode == "DRAW_SHAPES") {
+            TextButton(
+                onClick = {
+                    println("Shape Button Clicked")
+                    shapeSelectionDialog = true
+                },
+                modifier = Modifier.background(colour).weight(1f)
+            ) {}
+        }
         Spacer(modifier = Modifier.weight(1f)) // Dynamic spacing to push the row to the right
     }
 
@@ -103,7 +111,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
                                 } else if (selectedMode == "ERASE") {
                                     // ERASE LOGIC
                                 } else if (selectedMode == "DRAW_SHAPES") {
-                                    // DRAW A SHAPE LOGIC
+                                    shapeSelectionDialog = true
                                 } else if (selectedMode == "SELECT_LINES") {
                                     // SELECT ANYTHING WITHIN THE BOUNDS OF THE SELECTION
                                 }
@@ -119,6 +127,44 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
                 strokeWidth = line.strokeWidth.toPx(),
                 cap = StrokeCap.Round
             )
+        }
+
+        when (selectedShapeType) {
+            ShapeType.Rectangle -> {
+                drawRect(
+                    color = colour,
+                    topLeft = Offset(100f, 100f), // Example position
+                    size = Size(100f, 100f) // Example size
+                )
+            }
+            ShapeType.Circle -> {
+                drawCircle(
+                    color = colour,
+                    center = Offset(200f, 200f), // Example position
+                    radius = 50f // Example radius
+                )
+            }
+            ShapeType.Triangle -> {
+                // Drawing triangle logic (you can use drawPath for this)
+            }
+            null -> Unit
+        }
+    }
+
+    if (shapeSelectionDialog) {
+        Dialog(
+            onDismissRequest = {
+                shapeSelectionDialog = false
+            },
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            ShapePicker(onShapeSelected = { selectedShape ->
+                selectedShapeType = selectedShape
+                shapeSelectionDialog = false
+            })
         }
     }
 
