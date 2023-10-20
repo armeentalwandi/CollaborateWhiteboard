@@ -47,7 +47,7 @@ fun TwoColumnLayout() {
                         .fillMaxHeight()
                         .padding(16.dp)
                 ) {
-                    Whiteboard(selectedMode = selectedMode.name)
+                    Whiteboard(selectedMode = selectedMode.name, shape = null)
                 }
             }
         }
