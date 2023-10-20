@@ -10,5 +10,6 @@ data class Stroke(
     var endOffset: Offset = Offset(0f, 0f),
     var userId: UUID,
     var color: Color = Color.Black,
-    val lines: MutableList<Line>
+    val lines: MutableList<Line>,
+    val center: Offset? = null
 )

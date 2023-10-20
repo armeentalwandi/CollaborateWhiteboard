@@ -5,16 +5,12 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Slider
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -22,15 +18,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import models.*
 
-import models.Line
-import models.ShapeType
-import models.Action
-import models.Stroke
 import java.util.UUID
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 @Composable
-fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, shape: Shape? = null) {
+fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
     var colour by remember { mutableStateOf(Color.Red) }
     val lines = remember { mutableStateListOf<Line>() }
@@ -40,8 +35,13 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
     val history = remember { mutableStateListOf<Action>() }
     val redoStack = remember { mutableStateListOf<Action>() }
-    var selectedShapeType by remember { mutableStateOf<ShapeType?>(null)  }
-    var shapeSelectionDialog by remember { mutableStateOf(false) }
+
+    var showShapeOptionsScreen by remember { mutableStateOf(false) }
+    var selectedShapeType by remember { mutableStateOf<ShapeType?>(null) }
+
+    if (selectedMode == "DRAW_SHAPES" && selectedShapeType == null) {
+        showShapeOptionsScreen = true
+    }
 
     fun undo() {
         if (history.isNotEmpty()) {
@@ -132,6 +132,14 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
                                 onDragStart = { offset ->
                                     if (selectedMode == "DRAW_LINES") {
                                         currentStroke = Stroke(offset, userId = UUID.randomUUID(), lines = mutableListOf())
+                                    } else if (selectedMode == "DRAW_SHAPES") {
+                                        if (selectedShapeType == ShapeType.Circle) {
+                                            currentStroke = createCircleStroke(center = offset, radius=0f, colour = colour, strokeSize = strokeSize)
+                                        } else if (selectedShapeType == ShapeType.Rectangle) {
+                                            currentStroke = createRectangleStroke(topLeft = offset, bottomRight = offset, colour = colour, strokeSize = strokeSize)
+                                        } else if (selectedShapeType == ShapeType.Triangle) {
+                                            currentStroke = createTriangleStroke(vertex1 = offset, endOffset = offset, colour = colour, strokeSize = strokeSize)
+                                        }
                                     }
                                 },
                                 onDrag = { change, dragAmount ->
@@ -173,7 +181,14 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
                                             }
 
                                         } else if (selectedMode == "DRAW_SHAPES") {
-                                            // DRAW A SHAPE LOGIC
+                                            if (selectedShapeType == ShapeType.Circle) {
+                                                val radius = DistanceBetweenPoints(currentStroke!!.center!!, endPosition)
+                                                currentStroke = createCircleStroke(currentStroke!!.center!!, radius, colour, strokeSize)
+                                            } else if (selectedShapeType == ShapeType.Rectangle) {
+                                                currentStroke = createRectangleStroke(topLeft = currentStroke!!.startOffset, bottomRight = endPosition, colour = colour, strokeSize = strokeSize)
+                                            } else if (selectedShapeType == ShapeType.Triangle) {
+                                                currentStroke = createTriangleStroke(vertex1 = currentStroke!!.startOffset, endOffset = endPosition, colour = colour, strokeSize = strokeSize)
+                                            }
                                         } else if (selectedMode == "SELECT_LINES") {
                                             // SELECT ANYTHING WITHIN THE BOUNDS OF THE SELECTION
                                         }
@@ -186,11 +201,29 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
                                         history.add(Action.AddStroke(currentStroke!!))
                                         redoStack.clear()  // Clear redo stack when a new action is done
                                         currentStroke = null
+                                    } else if (selectedMode == "DRAW_SHAPES") {
+                                        strokes.add(currentStroke!!)
+                                        lines.addAll(currentStroke!!.lines)
+                                        history.add(Action.AddStroke(currentStroke!!))
+                                        redoStack.clear()  // Clear redo stack when a new action is done
+                                        currentStroke = null
+                                        selectedShapeType = null
                                     }
                                 }
                             )
         },
     ) {
+
+        currentStroke?.lines?.forEach { currStrokeLine ->
+            println("${currStrokeLine.startOffset} ${currStrokeLine.endOffset}")
+            drawLine(
+                color = currStrokeLine.color,
+                start = currStrokeLine.startOffset,
+                end = currStrokeLine.endOffset,
+                strokeWidth = currStrokeLine.strokeWidth.toPx(),
+                cap = StrokeCap.Round
+            )
+        }
 
         lines.forEach {line ->
             drawLine(
@@ -200,27 +233,6 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
                 strokeWidth = line.strokeWidth.toPx(),
                 cap = StrokeCap.Round
             )
-        }
-
-        when (selectedShapeType) {
-            ShapeType.Rectangle -> {
-                drawRect(
-                    color = colour,
-                    topLeft = Offset(100f, 100f), // Example position
-                    size = Size(100f, 100f) // Example size
-                )
-            }
-            ShapeType.Circle -> {
-                drawCircle(
-                    color = colour,
-                    center = Offset(200f, 200f), // Example position
-                    radius = 50f // Example radius
-                )
-            }
-            ShapeType.Triangle -> {
-                // Drawing triangle logic (you can use drawPath for this)
-            }
-            null -> Unit
         }
     }
 
@@ -238,12 +250,25 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", color: Color = Color.Black, 
             Column(
                 modifier = Modifier.background(Color.White) // Set dialog background color
             ) {
-                ColorPicker(color, onColorSelected = { selectedColour ->
+                ColorPicker(colour, onColorSelected = { selectedColour ->
                     colour = selectedColour
                     colourPickerDialog = false
                 })
             }
         }
+    } else if (showShapeOptionsScreen) {
+        AlertDialog(
+            onDismissRequest = { showShapeOptionsScreen = false },
+            title = { Text("Select a Shape") },
+            buttons = {
+                // Display shape options in the dialog
+                ShapeOptionsDialogButtons { selectedShape ->
+                    // Handle the selected shape (e.g., set it in the Whiteboard composable)
+                    selectedShapeType = selectedShape
+                    showShapeOptionsScreen = false // Close the dialog
+                }
+            }
+        )
     }
 
 }
@@ -280,6 +305,10 @@ private fun doLinesCross(line1start: Offset, line1end: Offset, line2start: Offse
     return false
 }
 
+
+private fun DistanceBetweenPoints(offset1: Offset, offset2: Offset): Float {
+    return sqrt((offset1.x - offset2.x).pow(2) + (offset1.y - offset2.y).pow(2))
+}
 
 
 private fun isWithinCanvasBounds(offset: Offset, canvasSize: Size): Boolean {
