@@ -15,6 +15,7 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":models"))
     implementation(compose.desktop.currentOs)
 }
 

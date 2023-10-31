@@ -1,6 +1,5 @@
 package models
 
-import models.Line
 import androidx.compose.ui.graphics.Color
 sealed class Action {
     data class AddStroke(val stroke: Stroke) : Action()

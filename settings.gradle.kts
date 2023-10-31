@@ -11,3 +11,4 @@ pluginManagement {
 }
 
 rootProject.name = "theappengers"
+include("application", "models", "server")
