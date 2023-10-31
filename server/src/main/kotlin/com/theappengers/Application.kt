@@ -1,6 +1,7 @@
-package com.example
+package com.theappengers
 
-import com.example.plugins.*
+import com.theappengers.plugins.*
+import com.theappengers.providers.DatabaseProvider
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -15,4 +16,6 @@ fun Application.module() {
     configureSerialization()
     configureSecurity()
     configureRouting()
+    val databaseProvider = DatabaseProvider()
+    databaseProvider.init()
 }
