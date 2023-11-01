@@ -11,27 +11,32 @@ class ApiClient {
     private val baseUrl = "http://127.0.0.1:8080"
     private val client = HttpClient()
 
-    suspend fun get_all_strokes(userId: UUID): List<SerializableStroke> {
-        val url = "$baseUrl/strokes"
-        val response = client.get(url) {
-            url {
-                parameters.append("user", userId.toString())
-            }
-        }
-        return response.body()// all serializable strokes
+
+    suspend fun getAllStrokes(): List<SerializableStroke> {
+        val url = "$baseUrl/strokes/all"
+        val response = client.get(url)
+
+        // Step 1: Decode the outer JSON to get a List<String>
+        val jsonStringList: List<String> = Json.decodeFromString(response.body())
+        val result = jsonStringList.map { Json.decodeFromString<SerializableStroke>(it) }
+        println(result)
+
+        // Step 2: Map over the list and decode each string to get SerializableStroke
+        return jsonStringList.map { Json.decodeFromString<SerializableStroke>(it) }
     }
 
-    suspend fun get_strokes(userId: UUID): List<SerializableStroke> {
+
+    suspend fun getStrokes(userId: UUID): List<SerializableStroke> {
         val url = "$baseUrl/strokes"
         val response = client.get(url) {
             url {
                parameters.append("user", userId.toString())
             }
         }
-        return response.body()// all serializable strokes
+        return response.body() // all serializable strokes for the given user
     }
 
-    suspend fun post_stroke(stroke: SerializableStroke): HttpResponse {
+    suspend fun postStroke(stroke: SerializableStroke): HttpResponse {
         val url = "$baseUrl/strokes"
         val response = client.post(url) {
             setBody(Json.encodeToString(stroke))

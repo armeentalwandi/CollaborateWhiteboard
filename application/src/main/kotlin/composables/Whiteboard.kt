@@ -1,5 +1,6 @@
 package composables
 
+import ApiClient
 import ColorPicker
 import TEMP_UUID
 import androidx.compose.foundation.Canvas
@@ -20,8 +21,6 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import apiClient
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import models.*
@@ -35,7 +34,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
     var colour by remember { mutableStateOf(Color.Red) }
     val lines = remember { mutableStateListOf<Line>() }
-    val strokes = remember { mutableStateListOf<Stroke>() }
+    var strokes = remember { mutableStateListOf<Stroke>() }
     var currentStroke: Stroke? by remember { mutableStateOf(null) }
     var canvasSize by remember { mutableStateOf(Size(0f, 0f)) }
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
@@ -47,6 +46,22 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
 
     if (selectedMode == "DRAW_SHAPES" && selectedShapeType == null) {
         showShapeOptionsScreen = true
+    }
+
+    runBlocking {
+        launch {
+            strokes.clear()
+            lines.clear()
+            apiClient.getAllStrokes().forEach {
+                if (it.userId == TEMP_UUID) {
+                    val stroke = fromSerializable(it)
+                    print(stroke)
+                    strokes.add(stroke)
+                    lines.addAll(stroke.lines)
+
+                }
+            }
+        }
     }
 
     fun undo() {
@@ -66,8 +81,6 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
         }
     }
 
-
-    println("Selected Mode: $selectedMode")
     fun redo() {
         if (redoStack.isNotEmpty()) {
             val actionToRedo = redoStack.removeLast()
@@ -218,7 +231,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                     runBlocking {
                                         launch {
                                             if (currentStroke != null){
-                                                apiClient.post_stroke(toSerializable(currentStroke!!))
+                                                apiClient.postStroke(toSerializable(currentStroke!!))
                                             }
                                         }
                                     }
@@ -230,7 +243,6 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
         },
     ) {
         currentStroke?.lines?.forEach { currStrokeLine ->
-            println("${currStrokeLine.startOffset} ${currStrokeLine.endOffset}")
             drawLine(
                 color = currStrokeLine.color,
                 start = currStrokeLine.startOffset,
