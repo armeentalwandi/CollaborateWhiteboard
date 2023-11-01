@@ -2,7 +2,7 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class Line(
+data class SerializableLine(
     val id: Int = 0,
     val startOffset: Pair<Float, Float>,
     val endOffset: Pair<Float, Float>,

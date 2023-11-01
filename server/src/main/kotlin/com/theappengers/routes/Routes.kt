@@ -1,7 +1,7 @@
 package com.theappengers.routes
 
-import Stroke
 import com.theappengers.StrokesTable
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -12,9 +12,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 fun Routing.strokeRoutes() {
     route("/strokes") {
         post {
-            val stroke = call.receive<Stroke>()
-            println(stroke)
+            val text = call.receiveText()
+            println(text)
+            call.respond(HttpStatusCode.OK, "Stroke added successfully")
         }
-
     }
 }

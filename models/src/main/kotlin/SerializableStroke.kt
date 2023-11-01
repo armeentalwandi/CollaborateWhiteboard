@@ -2,11 +2,11 @@ import kotlinx.serialization.Serializable
 import java.util.*
 
 @Serializable
-data class Stroke(
+data class SerializableStroke(
     var startOffset: Pair<Float, Float> = Pair(0f,0f),
     var endOffset: Pair<Float, Float> = Pair(0f,0f),
-    var userId: UUID,
+    var userId: String,
     var color: String = "#000000",
-    val lines: MutableList<Line>,
+    val serializableLines: MutableList<SerializableLine>,
     val center: Pair<Float, Float>? = null
 )
