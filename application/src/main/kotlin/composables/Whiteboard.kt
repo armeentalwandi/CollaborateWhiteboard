@@ -137,7 +137,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                             detectDragGestures (
                                 onDragStart = { offset ->
                                     if (selectedMode == "DRAW_LINES") {
-                                        currentStroke = Stroke(offset, userId = TEMP_UUID, lines = mutableListOf())
+                                        currentStroke = Stroke(offset, userId = TEMP_UUID, strokeId = UUID.randomUUID().toString(), lines = mutableListOf())
                                     } else if (selectedMode == "DRAW_SHAPES") {
                                         if (selectedShapeType == ShapeType.Circle) {
                                             currentStroke = createCircleStroke(center = offset, radius=0f, colour = colour, strokeSize = strokeSize)
