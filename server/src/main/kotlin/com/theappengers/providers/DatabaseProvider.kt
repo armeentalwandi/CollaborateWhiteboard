@@ -1,8 +1,11 @@
 package com.theappengers.providers
 
+import com.theappengers.StrokesTable
 import com.theappengers.configs.DatabaseConfig
 import io.github.cdimascio.dotenv.Dotenv
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.transactions.transaction
 
 class DatabaseProvider() {
 
@@ -15,5 +18,8 @@ class DatabaseProvider() {
             url = dbUrl,
             driver = "org.sqlite.JDBC"
         )
+        transaction {
+            SchemaUtils.create(StrokesTable)
+        }
     }
 }

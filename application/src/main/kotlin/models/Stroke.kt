@@ -13,6 +13,7 @@ data class Stroke(
     var startOffset: Offset = Offset(0f, 0f),
     var endOffset: Offset = Offset(0f, 0f),
     var userId: String,
+    var strokeId: String,
     var color: Color = Color.Black,
     val lines: MutableList<Line>,
     val center: Offset? = null
@@ -22,7 +23,8 @@ fun toSerializable(stroke: Stroke) : SerializableStroke {
     val serializable = SerializableStroke(
         Pair(stroke.startOffset.x, stroke.startOffset.y),
         Pair(stroke.endOffset.x, stroke.endOffset.y),
-        stroke.userId.toString(),
+        stroke.userId,
+        stroke.strokeId,
         stroke.color.toHex(),
         stroke.lines.map { toSerializable(it) }.toMutableList(),
         if (stroke.center != null) { Pair(stroke.center.x, stroke.center.y) } else { null }
@@ -47,6 +49,7 @@ fun fromSerializable(serializableStroke: SerializableStroke): Stroke {
         Offset(serializableStroke.startOffset.first, serializableStroke.startOffset.second),
         Offset(serializableStroke.endOffset.first, serializableStroke.endOffset.second),
         serializableStroke.userId,
+        serializableStroke.strokeId,
         serializableStroke.color.toColor(),
         serializableStroke.serializableLines.map { fromSerializable(it) }.toMutableList(),
         serializableStroke.center?.let { Offset(it.first, it.second) }
