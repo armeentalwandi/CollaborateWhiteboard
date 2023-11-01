@@ -1,5 +1,6 @@
 package models
 
+import TEMP_UUID
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -37,7 +38,7 @@ fun createCircleStroke(center: Offset, radius: Float, colour:Color, strokeSize: 
         color = colour,
         startOffset = lines.first().startOffset,
         endOffset = lines.last().endOffset,
-        userId = UUID.randomUUID(),
+        userId = TEMP_UUID,
         lines = lines,
         center = center
     )
@@ -65,7 +66,7 @@ fun createRectangleStroke(topLeft: Offset, bottomRight: Offset, colour: Color, s
     return Stroke(
         startOffset = topLeft,
         endOffset = bottomRight,
-        userId = UUID.randomUUID(),
+        userId = TEMP_UUID,
         color = colour,
         lines = lines
     )
@@ -108,7 +109,7 @@ fun createTriangleStroke(vertex1: Offset, endOffset: Offset, colour: Color, stro
     return Stroke(
         startOffset = vertex1,
         endOffset = vertex1,  // As per your definition for rectangles
-        userId = UUID.randomUUID(),
+        userId = "af7c1fe6-d669-414e-b066-e9733f0de7a8",
         color = colour,
         lines = lines
     )

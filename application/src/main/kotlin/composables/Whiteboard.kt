@@ -1,6 +1,7 @@
 package composables
 
 import ColorPicker
+import TEMP_UUID
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -18,6 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import apiClient
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import models.*
 
 import java.util.UUID
@@ -131,7 +137,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                             detectDragGestures (
                                 onDragStart = { offset ->
                                     if (selectedMode == "DRAW_LINES") {
-                                        currentStroke = Stroke(offset, userId = UUID.randomUUID(), lines = mutableListOf())
+                                        currentStroke = Stroke(offset, userId = TEMP_UUID, lines = mutableListOf())
                                     } else if (selectedMode == "DRAW_SHAPES") {
                                         if (selectedShapeType == ShapeType.Circle) {
                                             currentStroke = createCircleStroke(center = offset, radius=0f, colour = colour, strokeSize = strokeSize)
@@ -200,20 +206,29 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                         strokes.add(currentStroke!!)
                                         history.add(Action.AddStroke(currentStroke!!))
                                         redoStack.clear()  // Clear redo stack when a new action is done
-                                        currentStroke = null
                                     } else if (selectedMode == "DRAW_SHAPES") {
                                         strokes.add(currentStroke!!)
                                         lines.addAll(currentStroke!!.lines)
                                         history.add(Action.AddStroke(currentStroke!!))
                                         redoStack.clear()  // Clear redo stack when a new action is done
-                                        currentStroke = null
                                         selectedShapeType = null
                                     }
+
+                                    // I WANT TO POST STROKE HERE
+                                    runBlocking {
+                                        launch {
+                                            if (currentStroke != null){
+                                                apiClient.post_stroke(toSerializable(currentStroke!!))
+                                            }
+                                        }
+                                    }
+
+                                    currentStroke = null
+
                                 }
                             )
         },
     ) {
-
         currentStroke?.lines?.forEach { currStrokeLine ->
             println("${currStrokeLine.startOffset} ${currStrokeLine.endOffset}")
             drawLine(
