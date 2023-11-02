@@ -1,7 +1,7 @@
 package com.theappengers.providers
 
-import com.theappengers.StrokesTable
-import com.theappengers.configs.DatabaseConfig
+import com.theappengers.schemas.StrokesTable
+import com.theappengers.schemas.UsersTable
 import io.github.cdimascio.dotenv.Dotenv
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -20,6 +20,8 @@ class DatabaseProvider() {
         )
         transaction {
             SchemaUtils.create(StrokesTable)
+            SchemaUtils.create(UsersTable)
+
         }
     }
 }

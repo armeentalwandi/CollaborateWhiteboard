@@ -1,14 +1,13 @@
 package com.theappengers.routes
 
 import SerializableStroke
-import com.theappengers.StrokesTable
-import com.theappengers.StrokesTable.serializedStroke
+import com.theappengers.schemas.StrokesTable
+import com.theappengers.schemas.StrokesTable.serializedStroke
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.Identity.decode
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
