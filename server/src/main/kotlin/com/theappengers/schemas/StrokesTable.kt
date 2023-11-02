@@ -1,4 +1,4 @@
-package com.theappengers
+package com.theappengers.schemas
 
 import org.jetbrains.exposed.sql.Table
 

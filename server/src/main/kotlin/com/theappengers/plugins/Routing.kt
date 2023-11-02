@@ -9,5 +9,6 @@ import com.theappengers.routes.*
 fun Application.configureRouting() {
     routing {
         strokeRoutes()
+        authRoutes()
     }
 }
