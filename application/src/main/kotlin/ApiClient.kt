@@ -44,12 +44,9 @@ class ApiClient {
         return response
     }
 
-    suspend fun delete_stroke(stroke: SerializableStroke): HttpResponse {
-        val url = "$baseUrl/strokes"
-        val response = client.post(url) {
-            setBody(stroke)
-        }
-        return response
+    suspend fun deleteStroke(strokeId: UUID): HttpResponse {
+        val url = "$baseUrl/strokes/$strokeId"
+        return client.delete(url)
     }
 
 }

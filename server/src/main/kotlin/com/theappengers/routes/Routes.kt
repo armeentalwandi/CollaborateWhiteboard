@@ -10,6 +10,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.Identity.decode
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -44,6 +46,19 @@ fun Routing.strokeRoutes() {
             call.respond(HttpStatusCode.OK, allStrokes)
         }
 
-
+        delete("/{strokeId}") {
+            val strokeId = call.parameters["strokeId"]?: null
+            if (strokeId != null) {
+                val strokeIdUUID = UUID.fromString(strokeId)
+                println("$strokeIdUUID HELOOOOOOOOOOO")
+                transaction {
+                    // Logic to delete the stroke with the given ID from the database.
+                    StrokesTable.deleteWhere { StrokesTable.strokeId eq strokeIdUUID }
+                }
+                call.respond(HttpStatusCode.OK, "Stroke deleted successfully")
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "Invalid or missing strokeId parameter")
+            }
+        }
     }
 }
