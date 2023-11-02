@@ -18,7 +18,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
 fun Routing.strokeRoutes() {
-    authenticate("jwt") {
+    // authenticate("jwt") {
         route("/strokes") {
             post {
                 val text = call.receiveText()
@@ -62,5 +62,5 @@ fun Routing.strokeRoutes() {
                 }
             }
         }
-    }
+    //}
 }
