@@ -1,5 +1,6 @@
 package composables
 
+import ApiClient
 import ColorPicker
 import TEMP_UUID
 import androidx.compose.foundation.Canvas
@@ -20,8 +21,6 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import apiClient
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import models.*
@@ -35,7 +34,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
     var colour by remember { mutableStateOf(Color.Red) }
     val lines = remember { mutableStateListOf<Line>() }
-    val strokes = remember { mutableStateListOf<Stroke>() }
+    var strokes = remember { mutableStateListOf<Stroke>() }
     var currentStroke: Stroke? by remember { mutableStateOf(null) }
     var canvasSize by remember { mutableStateOf(Size(0f, 0f)) }
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
@@ -49,6 +48,22 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
         showShapeOptionsScreen = true
     }
 
+    runBlocking {
+        launch {
+            strokes.clear()
+            lines.clear()
+            apiClient.getAllStrokes().forEach {
+                if (it.userId == TEMP_UUID) {
+                    val stroke = fromSerializable(it)
+//                    print(stroke)
+                    strokes.add(stroke)
+                    lines.addAll(stroke.lines)
+
+                }
+            }
+        }
+    }
+
     fun undo() {
         if (history.isNotEmpty()) {
             val lastAction = history.removeLast()
@@ -60,14 +75,15 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                 is Action.ChangeColor -> {
                     // Restore to the previous color or handle accordingly
                 }
-                // ... handle other action types
+                is Action.DeleteStroke -> {
+//                    strokes.add(lastAction.deletedStroke)
+//                    lines.addAll(lastAction.deletedStroke.lines)
+                }
             }
             redoStack.add(lastAction)  // Push to redo stack
         }
     }
 
-
-    println("Selected Mode: $selectedMode")
     fun redo() {
         if (redoStack.isNotEmpty()) {
             val actionToRedo = redoStack.removeLast()
@@ -79,7 +95,12 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                 is Action.ChangeColor -> {
                     // Apply the color change again
                 }
-                // ... handle other action types
+                is Action.DeleteStroke -> {
+//                    strokes.remove(actionToRedo.deletedStroke)
+//                    actionToRedo.deletedStroke.lines.forEach {
+//                        lines.remove(it)
+//                    }
+                }
             }
             history.add(actionToRedo)  // Push back to history
         }
@@ -180,10 +201,19 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                             }
 
                                             if (eraseableStroke != null) {
+                                                // Post deletion to the server
+                                                runBlocking {
+                                                    launch {
+                                                        apiClient.deleteStroke(UUID.fromString(eraseableStroke.strokeId))
+                                                    }
+                                                }
                                                 strokes.remove(eraseableStroke)
                                                 eraseableStroke.lines.forEach {
                                                     lines.remove(it)
                                                 }
+//                                                // Add the deleted stroke to history for undo functionality
+//                                                history.add(Action.DeleteStroke(eraseableStroke))
+//                                                redoStack.clear()  // Clear redo stack when a new action is done
                                             }
 
                                         } else if (selectedMode == "DRAW_SHAPES") {
@@ -218,7 +248,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                     runBlocking {
                                         launch {
                                             if (currentStroke != null){
-                                                apiClient.post_stroke(toSerializable(currentStroke!!))
+                                                apiClient.postStroke(toSerializable(currentStroke!!))
                                             }
                                         }
                                     }
@@ -230,7 +260,6 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
         },
     ) {
         currentStroke?.lines?.forEach { currStrokeLine ->
-            println("${currStrokeLine.startOffset} ${currStrokeLine.endOffset}")
             drawLine(
                 color = currStrokeLine.color,
                 start = currStrokeLine.startOffset,
