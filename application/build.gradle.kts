@@ -37,7 +37,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "theappengers"
-            packageVersion = "1.0.0"
+            packageVersion = "1.1.0"
         }
     }
 }
