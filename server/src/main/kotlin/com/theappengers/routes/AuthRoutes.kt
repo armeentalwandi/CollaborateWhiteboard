@@ -33,9 +33,8 @@ fun Routing.authRoutes() {
         }
 
         post("/register") {
-            val registerRequest = call.receive<RegisterRequest>()
-
-            println(registerRequest)
+            val text = call.receiveText()
+            val registerRequest = Json.decodeFromString<RegisterRequest>(text)
 
             if (UsersTable.doesEmailExist(registerRequest.email)) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("token" to "Invalid Credentials"))

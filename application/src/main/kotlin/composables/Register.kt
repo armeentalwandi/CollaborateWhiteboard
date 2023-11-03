@@ -1,22 +1,17 @@
 package composables
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import apiClient
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.util.*
 
 enum class Role {
     Student,
@@ -29,7 +24,6 @@ fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var passwordConfirmation by remember { mutableStateOf("") }
     var role by remember { mutableStateOf(Role.Student) }
 
     Column(
@@ -106,6 +100,22 @@ fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
             Button(
                 onClick = {
                     // Handle registration logic here
+
+                    // Use coroutineScope to make an authentication request
+                    runBlocking {
+                        launch {
+                            // Perform authentication request and get a token
+                            val token = apiClient.registerRequest(email.trim(), password.trim(), firstName.trim(), lastName.trim(), role.toString()
+                                .lowercase(Locale.getDefault())
+                                .trim() )
+                            // Check if authentication was successful
+                            if (token != "Invalid Credentials"){
+                                onRegistrationSuccessful()
+                            }
+                            email = ""
+                            password = ""
+                        }
+                    }
                 }
             ) {
                 Text(text = "Register")
