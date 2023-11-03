@@ -178,7 +178,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                         currentStroke = Stroke(offset, userId = TEMP_UUID, strokeId = UUID.randomUUID().toString(), lines = mutableListOf())
                                     } else if (selectedMode == "DRAW_SHAPES") {
                                         if (selectedShapeType == ShapeType.Circle) {
-                                            currentStroke = createCircleStroke(center = offset, radius=0f, colour = colour, strokeSize = strokeSize)
+                                            currentStroke = createCircleStroke(center = offset, initialRadius=0f, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize)
                                         } else if (selectedShapeType == ShapeType.Rectangle) {
                                             currentStroke = createRectangleStroke(topLeft = offset, bottomRight = offset, colour = colour, strokeSize = strokeSize)
                                         } else if (selectedShapeType == ShapeType.Triangle) {
@@ -236,7 +236,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                         } else if (selectedMode == "DRAW_SHAPES") {
                                             if (selectedShapeType == ShapeType.Circle) {
                                                 val radius = DistanceBetweenPoints(currentStroke!!.center!!, endPosition)
-                                                currentStroke = createCircleStroke(currentStroke!!.center!!, radius, colour, strokeSize)
+                                                currentStroke = createCircleStroke(currentStroke!!.center!!, radius, colour, strokeSize, canvasSize)
                                             } else if (selectedShapeType == ShapeType.Rectangle) {
                                                 currentStroke = createRectangleStroke(topLeft = currentStroke!!.startOffset, bottomRight = endPosition, colour = colour, strokeSize = strokeSize)
                                             } else if (selectedShapeType == ShapeType.Triangle) {
