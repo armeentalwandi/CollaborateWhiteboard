@@ -190,7 +190,8 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
 
                                 onDrag = { change, dragAmount ->
                                     change.consume()
-                                    val startPosition = initialDragPosition ?: return@detectDragGestures
+                                    val startPosition = change.position - dragAmount
+                                    val startPositionTriangle = initialDragPosition ?: return@detectDragGestures
                                     val endPosition = change.position
                                     if (isWithinCanvasBounds(startPosition, canvasSize) && isWithinCanvasBounds(endPosition, canvasSize)) {
                                         if (selectedMode == "DRAW_LINES") {
@@ -204,7 +205,6 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                             )
                                             currentStroke?.lines?.add(line)
                                             lines.add(line)
-
                                         } else if (selectedMode == "ERASE") {
                                             // ERASE LOGIC
 
