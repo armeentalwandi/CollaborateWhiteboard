@@ -164,6 +164,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
     }
 
     Spacer(modifier = Modifier.height(16.dp)) // Add spacing between the row and the canvas
+    var initialDragPosition: Offset? = null
 
     Canvas(modifier = Modifier
         .fillMaxSize()
@@ -174,6 +175,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
         .pointerInput(selectedMode) {
                             detectDragGestures (
                                 onDragStart = { offset ->
+                                    initialDragPosition = offset
                                     if (selectedMode == "DRAW_LINES") {
                                         currentStroke = Stroke(offset, userId = TEMP_UUID, strokeId = UUID.randomUUID().toString(), lines = mutableListOf())
                                     } else if (selectedMode == "DRAW_SHAPES") {
@@ -182,13 +184,13 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                         } else if (selectedShapeType == ShapeType.Rectangle) {
                                             currentStroke = createRectangleStroke(topLeft = offset, bottomRight = offset, colour = colour, strokeSize = strokeSize)
                                         } else if (selectedShapeType == ShapeType.Triangle) {
-                                            currentStroke = createTriangleStroke(vertex1 = offset, endOffset = offset, colour = colour, strokeSize = strokeSize)
-                                        }
+                                            currentStroke = createTriangleStroke(vertex1 = offset, dragEnd = Offset(offset.x + 1f, offset.y + 1f), colour = colour, strokeSize = strokeSize, canvasSize=canvasSize)                                        }
                                     }
                                 },
+
                                 onDrag = { change, dragAmount ->
                                     change.consume()
-                                    val startPosition = change.position - dragAmount
+                                    val startPosition = initialDragPosition ?: return@detectDragGestures
                                     val endPosition = change.position
                                     if (isWithinCanvasBounds(startPosition, canvasSize) && isWithinCanvasBounds(endPosition, canvasSize)) {
                                         if (selectedMode == "DRAW_LINES") {
@@ -240,7 +242,9 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                             } else if (selectedShapeType == ShapeType.Rectangle) {
                                                 currentStroke = createRectangleStroke(topLeft = currentStroke!!.startOffset, bottomRight = endPosition, colour = colour, strokeSize = strokeSize)
                                             } else if (selectedShapeType == ShapeType.Triangle) {
-                                                currentStroke = createTriangleStroke(vertex1 = currentStroke!!.startOffset, endOffset = endPosition, colour = colour, strokeSize = strokeSize)
+                                                println(currentStroke!!.startOffset)
+                                                println(endPosition)
+                                                currentStroke = createTriangleStroke(vertex1 = currentStroke!!.startOffset, dragEnd = endPosition, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize)
                                             }
                                         } else if (selectedMode == "SELECT_LINES") {
                                             // SELECT ANYTHING WITHIN THE BOUNDS OF THE SELECTION
