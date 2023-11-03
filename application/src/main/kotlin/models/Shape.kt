@@ -124,7 +124,7 @@ fun createRectangleStroke(topLeft: Offset, bottomRight: Offset, colour: Color, s
     )
 }
 
-
+/*
 fun createTriangleStroke(vertex1: Offset, endOffset: Offset, colour: Color, strokeSize: Float): Stroke {
     println("Start $vertex1")
     println("End $endOffset")
@@ -166,6 +166,56 @@ fun createTriangleStroke(vertex1: Offset, endOffset: Offset, colour: Color, stro
         color = colour,
         lines = lines
     )
+}
+*/
+fun createTriangleStroke(vertex1: Offset, dragEnd: Offset, colour: Color, strokeSize: Float, canvasSize: Size): Stroke {
+    val dragDirection = dragEnd - vertex1
+
+    // Calculate the height of the triangle
+    val height = sqrt(dragDirection.x * dragDirection.x + dragDirection.y * dragDirection.y)
+
+    // Normalize the drag direction
+    val dragNormalized = if (height == 0f) Offset(0f, 0f) else Offset(dragDirection.x / height, dragDirection.y / height)
+
+    // Calculate the direction perpendicular to the drag direction
+    val perpendicularDirection = Offset(-dragNormalized.y, dragNormalized.x)
+
+    // Midpoint of the base
+    val baseMidpoint = vertex1 + dragDirection
+
+    // Half of the base length; adjust this value as per your needs (e.g., it can be a fraction of the height)
+    val halfBaseLength = height / 2  // This ensures the triangle is isosceles
+
+    // Calculate the two base vertices
+    val baseVertex1 = Offset(
+        (baseMidpoint.x + perpendicularDirection.x * halfBaseLength).coerceIn(0f, canvasSize.width.toFloat()),
+        (baseMidpoint.y + perpendicularDirection.y * halfBaseLength).coerceIn(0f, canvasSize.height.toFloat())
+    )
+
+    val baseVertex2 = Offset(
+        (baseMidpoint.x - perpendicularDirection.x * halfBaseLength).coerceIn(0f, canvasSize.width.toFloat()),
+        (baseMidpoint.y - perpendicularDirection.y * halfBaseLength).coerceIn(0f, canvasSize.height.toFloat())
+    )
+
+    // Construct your triangle using these three vertices: vertex1, baseVertex1, and baseVertex2
+    val lines = mutableListOf<Line>().apply {
+        add(Line(startOffset = vertex1, endOffset = baseVertex1, color = colour, strokeWidth = strokeSize.dp))
+        add(Line(startOffset = baseVertex1, endOffset = baseVertex2, color = colour, strokeWidth = strokeSize.dp))
+        add(Line(startOffset = baseVertex2, endOffset = vertex1, color = colour, strokeWidth = strokeSize.dp))
+    }
+
+    return Stroke(
+        startOffset = vertex1,
+        endOffset = baseVertex2,
+        userId = TEMP_UUID,
+        strokeId = UUID.randomUUID().toString(),
+        color = colour,
+        lines = lines
+    )
+}
+
+fun withinBounds(offset: Offset, canvasSize: Size): Boolean {
+    return offset.x in 0f..canvasSize.width && offset.y in 0f..canvasSize.height
 }
 
 
