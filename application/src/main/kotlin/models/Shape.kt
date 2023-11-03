@@ -7,8 +7,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import java.util.*
 import kotlin.math.*
+/*
+fun createCircleStroke(center: Offset, radius: Float, colour:Color, strokeSize: Float, canvasSize: Size, segments: Int = 360): Stroke {
+    // Calculate the maximum radius that fits within the canvas from the center point
+    val maxXRadius = minOf(center.x, canvasSize.width - center.x)
+    val maxYRadius = minOf(center.y, canvasSize.height - center.y)
+    val maxRadius = minOf(maxXRadius, maxYRadius) - strokeSize / 2  // Subtract half stroke size to account for line thickness
 
-fun createCircleStroke(center: Offset, radius: Float, colour:Color, strokeSize: Float, segments: Int = 360): Stroke {
     val angleIncrement = 2 * PI / segments
     val lines = mutableListOf<Line>()
 
@@ -44,7 +49,52 @@ fun createCircleStroke(center: Offset, radius: Float, colour:Color, strokeSize: 
         center = center
     )
 }
+*/
 
+fun createCircleStroke(center: Offset, initialRadius: Float, colour: Color, strokeSize: Float, canvasSize: Size, segments: Int = 360): Stroke {
+    // Calculate the maximum radius that fits within the canvas from the center point
+    val maxXRadius = minOf(center.x, canvasSize.width - center.x)
+    val maxYRadius = minOf(center.y, canvasSize.height - center.y)
+    val maxRadius = minOf(maxXRadius, maxYRadius) - strokeSize / 2  // Subtract half stroke size to account for line thickness
+
+    // Adjust the radius so it does not go beyond the canvas edges
+    val radius = minOf(initialRadius, maxRadius)
+
+    val angleIncrement = 2 * PI / segments
+    val lines = mutableListOf<Line>()
+
+    for (i in 0 until segments) {
+        val startAngle = i * angleIncrement
+        val endAngle = (i + 1) * angleIncrement
+
+        val startX = center.x + radius * cos(startAngle).toFloat()
+        val startY = center.y + radius * sin(startAngle).toFloat()
+        val startOffset = Offset(startX, startY)
+
+        val endX = center.x + radius * cos(endAngle).toFloat()
+        val endY = center.y + radius * sin(endAngle).toFloat()
+        val endOffset = Offset(endX, endY)
+
+        val line = Line(
+            id = i,
+            color = colour,
+            startOffset = startOffset,
+            endOffset = endOffset,
+            strokeWidth = strokeSize.dp
+        )
+        lines.add(line)
+    }
+
+    return Stroke(
+        color = colour,
+        startOffset = lines.first().startOffset,
+        endOffset = lines.last().endOffset,
+        userId = TEMP_UUID,
+        strokeId = UUID.randomUUID().toString(),
+        lines = lines,
+        center = center
+    )
+}
 fun createRectangleStroke(topLeft: Offset, bottomRight: Offset, colour: Color, strokeSize: Float): Stroke {
     val lines = mutableListOf<Line>()
 
