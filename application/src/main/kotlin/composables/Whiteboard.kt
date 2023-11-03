@@ -31,7 +31,7 @@ import kotlin.math.sqrt
 @Composable
 fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
-    var colour by remember { mutableStateOf(Color.Red) }
+    var colour by remember { mutableStateOf(Color(255, 0, 0)) }
     val lines = remember { mutableStateListOf<Line>() }
     var strokes = remember { mutableStateListOf<Stroke>() }
     var currentStroke: Stroke? by remember { mutableStateOf(null) }
@@ -311,9 +311,8 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
             Column(
                 modifier = Modifier.background(Color.White) // Set dialog background color
             ) {
-                ColorPicker(colour, onColorSelected = { selectedColour ->
+                ColourWheel(colour, onColourSelected = { selectedColour ->
                     colour = selectedColour
-                    colourPickerDialog = false
                 })
             }
         }

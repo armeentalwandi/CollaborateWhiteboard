@@ -1,5 +1,6 @@
 package composables
 
+import adjustColorByRGB
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -18,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import models.toHSL
 import kotlin.math.atan2
 
 @Composable
@@ -27,8 +27,8 @@ fun ColourWheel(
     onColourSelected: (Color) -> Unit
 ) {
     println(selectedColour)
-    var saturation by remember { mutableStateOf(1f) }
     var lightness by remember { mutableStateOf(0.5f) }
+    var currentColour by remember { mutableStateOf(selectedColour)}
     val size = 200.dp
     val strokeWidth = 20.dp
     val interactionSource = remember { MutableInteractionSource() }
@@ -57,7 +57,7 @@ fun ColourWheel(
                 .background(Color.White)
         ) {
             // drawRect(color = adjustColorByHSL(selectedColour, saturation, lightness))
-            drawRect(color=selectedColour)
+            drawRect(color=adjustColorByRGB(currentColour, lightness))
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -79,9 +79,8 @@ fun ColourWheel(
                         val colourAtPosition = colours[colorIndex]
 
                         // Adjust the selected color using the saturation and lightness sliders
-                        // val adjustedColor = adjustColorByHSL(colourAtPosition, saturation, lightness)
-
-                        onColourSelected(colourAtPosition)
+                        currentColour = colourAtPosition
+                        onColourSelected(adjustColorByRGB(colourAtPosition, lightness))
                     }
                 }
                 .background(Color.White)
@@ -95,21 +94,11 @@ fun ColourWheel(
                 )
             }
         }
-
-        Slider(
-            value = saturation,
-            onValueChange = {
-                saturation = it;
-            },
-            valueRange = 0f..1f,
-            steps = 100
-        )
-        Text("Saturation")
-
         Slider(
             value = lightness,
             onValueChange = {
                 lightness = it;
+                onColourSelected(adjustColorByRGB(currentColour, lightness))
             },
             valueRange = 0f..1f,
             steps = 100
