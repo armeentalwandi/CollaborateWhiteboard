@@ -11,7 +11,6 @@ class ApiClient {
     private val baseUrl = "http://127.0.0.1:8080"
     private val client = HttpClient()
 
-
     suspend fun getAllStrokes(): List<SerializableStroke> {
         val url = "$baseUrl/strokes/all"
         val response = client.get(url)
@@ -48,5 +47,40 @@ class ApiClient {
         val url = "$baseUrl/strokes/$strokeId"
         return client.delete(url)
     }
+
+
+    // Replace with your actual server API endpoint
+    suspend fun loginRequest(email: String, password: String): String {
+        val url = "$baseUrl/auth/login"
+
+        // Create a LoginRequest object with email and password
+        val loginRequest = LoginRequest(email, password)
+
+        return try{
+            val response = client.post(url) {
+                setBody(Json.encodeToString(loginRequest))
+            }
+            Json.decodeFromString<LoginResponse>(response.body()).token
+        } catch(e: Exception) {
+            "Invalid Credentials"
+        }
+    }
+
+    suspend fun registerRequest(email: String, password: String, firstName: String, lastName: String, role: String): Any {
+        val url = "$baseUrl/auth/register"
+
+        // Create a LoginRequest object with email and password
+        val registerRequest = RegisterRequest(email, password, firstName, lastName, role)
+
+        return try{
+            val response = client.post(url) {
+                setBody(Json.encodeToString(registerRequest))
+            }
+            Json.decodeFromString<LoginResponse>(response.body()).token
+        } catch(e: Exception) {
+            "Invalid Credentials"
+        }
+    }
+
 
 }

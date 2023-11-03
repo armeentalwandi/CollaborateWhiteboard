@@ -12,10 +12,61 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import apiClient
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
+
+//@Composable
+//fun LoginPage(onLoginSuccessful: () -> Unit) {
+//    var email by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(16.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Center
+//    ) {
+//        Text(
+//            text = "Login",
+//            style = MaterialTheme.typography.h4,
+//            color = Color.Blue
+//        )
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        OutlinedTextField(
+//            value = email,
+//            onValueChange = { email = it },
+//            label = { Text("Email") },
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        PasswordField(
+//            password = password,
+//            onPasswordChange = { password = it }
+//        )
+//        Text("Don't have an account? ", color = Color.Blue, modifier = Modifier.clickable {  })
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        Button(
+//            onClick = {
+//                // Handle login logic here
+//            },
+//            modifier = Modifier.fillMaxWidth()
+//        ) {
+//            Text(text = "Login")
+//        }
+//    }
+//}
 
 @Composable
-fun LoginPage() {
+fun LoginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -47,20 +98,53 @@ fun LoginPage() {
             password = password,
             onPasswordChange = { password = it }
         )
-        Text("Don't have an account? ", color = Color.Blue, modifier = Modifier.clickable {  })
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text("Don't have an account? ", color = Color.Blue, modifier = Modifier.clickable { onNoAccount() })
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                // Handle login logic here
-            },
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "Login")
+            // Back Button
+            Button(
+                onClick = {
+                    onBack() // Handle back navigation
+                }
+            ) {
+                Text("Back")
+            }
+
+            // Login Button
+            Button(
+                onClick = {
+                    // Handle login logic here
+
+                    // Use coroutineScope to make an authentication request
+                    runBlocking {
+                        launch {
+                            // Perform authentication request and get a token
+                            val token = apiClient.loginRequest(email.trim(), password.trim())
+                            // Check if authentication was successful
+                            if (token != "Invalid Credentials"){
+                                onLoginSuccessful()
+                            }
+                            email = ""
+                            password = ""
+                        }
+                    }
+
+                }
+            ) {
+                Text(text = "Login")
+            }
         }
     }
 }
+
 
 @Composable
 fun PasswordField(password: String, onPasswordChange: (String) -> Unit) {

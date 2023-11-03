@@ -1,6 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 val ktor_version: String by project
+val nav_version: String by project
 
 plugins {
     kotlin("jvm") version "1.9.10"

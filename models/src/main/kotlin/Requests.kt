@@ -1,5 +1,3 @@
-package com.theappengers
-
 import kotlinx.serialization.Serializable
 
 @Serializable
