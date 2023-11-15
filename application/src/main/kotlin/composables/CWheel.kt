@@ -21,17 +21,24 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import kotlin.math.atan2
 
+// Composable function for a color wheel
 @Composable
-fun ColourWheel(
+fun colourWheel(
     selectedColour: Color,
     onColourSelected: (Color) -> Unit
 ) {
     println(selectedColour)
+
+    // State variables to track lightness and the currently selected color
     var lightness by remember { mutableStateOf(0.5f) }
     var currentColour by remember { mutableStateOf(selectedColour)}
+
+    // Constants for size, strokeWidth, and interaction source
     val size = 200.dp
     val strokeWidth = 20.dp
     val interactionSource = remember { MutableInteractionSource() }
+
+    // List of predefined colors for the color wheel
     val colours = listOf(
         Color(255, 0, 0),       // Red
         Color(255, 83, 0),     // Red-Orange
@@ -47,26 +54,30 @@ fun ColourWheel(
         Color(227, 0, 140)     // Red-Violet
     )
 
+    // Column to layout components vertically
     Column(
         modifier = Modifier.background(Color.White), // This ensures that the entire component has a gray background.
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Canvas to display the selected color with adjusted lightness
         Canvas(
             modifier = Modifier
                 .size(width = 150.dp, height = 50.dp)
                 .background(Color.White)
         ) {
-            // drawRect(color = adjustColorByHSL(selectedColour, saturation, lightness))
+
             drawRect(color=adjustColorByRGB(currentColour, lightness))
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Canvas for the color wheel, allowing user interaction to select a color
         Canvas(
             modifier = Modifier
                 .size(200.dp)
                 .pointerInput(interactionSource) {
                     detectTapGestures { offset ->
+                        // Calculate the selected color based on the tap position
                         val centerX = size / 2f
                         val centerY = size / 2f
                         val dx = offset.x - centerX.toPx()
@@ -86,6 +97,7 @@ fun ColourWheel(
                 .background(Color.White)
         ) {
             drawIntoCanvas {
+                // Draw the color wheel using a sweep gradient
                 val radius = ((size.toPx() - strokeWidth.toPx()) / 2)
                 drawCircle(
                     brush = Brush.sweepGradient(colours),
@@ -94,10 +106,13 @@ fun ColourWheel(
                 )
             }
         }
+        // Slider for adjusting lightness
         Slider(
             value = lightness,
             onValueChange = {
                 lightness = it;
+
+                // Adjust the selected color based on the updated lightness
                 onColourSelected(adjustColorByRGB(currentColour, lightness))
             },
             valueRange = 0f..1f,

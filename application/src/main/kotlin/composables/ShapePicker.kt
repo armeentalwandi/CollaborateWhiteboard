@@ -8,10 +8,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import models.ShapeType
 
+// Composable function for shape options dialog buttons
 @Composable
-fun ShapeOptionsDialogButtons(
+fun shapeOptionsDialogButtons(
     onShapeSelected: (ShapeType) -> Unit
 ) {
+    // Column to layout shape option buttons vertically
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -19,19 +21,21 @@ fun ShapeOptionsDialogButtons(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Display shape options in the dialog
-        ShapeOptionButton(ShapeType.Rectangle, onShapeSelected)
-        ShapeOptionButton(ShapeType.Circle, onShapeSelected)
-        ShapeOptionButton(ShapeType.Triangle, onShapeSelected)
+        // Display shape options in the dialog using shapeOptionButton
+        shapeOptionButton(ShapeType.Rectangle, onShapeSelected)
+        shapeOptionButton(ShapeType.Circle, onShapeSelected)
+        shapeOptionButton(ShapeType.Triangle, onShapeSelected)
         // Add more shape options as needed
     }
 }
 
+// Composable function for a shape option button
 @Composable
-fun ShapeOptionButton(
+fun shapeOptionButton(
     shapeType: ShapeType,
     onClick: (ShapeType) -> Unit
 ) {
+    // Button for selecting a shape type
     Button(
         onClick = { onClick(shapeType) },
         modifier = Modifier

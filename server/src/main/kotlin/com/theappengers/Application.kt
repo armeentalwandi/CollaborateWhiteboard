@@ -26,17 +26,6 @@ fun Application.module() {
     val databaseProvider = DatabaseProvider()
     databaseProvider.init()
 
-//    install(Authentication) {
-//        jwt {
-//            realm = "theappengers.io"
-//            verifier(JwtConfig.verifier)
-//            validate {
-//                val userId = it.payload.getClaim("id")
-//                val user = UsersTable.findUserById(userId = UUID.fromString(userId.toString()))
-//                if (user != null) JWTPrincipal(it.payload) else null
-//            }
-//        }
-//    }
 }
 
 
