@@ -16,9 +16,15 @@ data class Stroke(
     var strokeId: String,
     var color: Color = Color.Black,
     val lines: MutableList<Line>,
-    val center: Offset? = null
-)
-
+    val center: Offset? = null,
+) {
+    fun moveBy(delta: Offset) {
+        lines.forEach { line ->
+            line.startOffset += delta
+            line.endOffset += delta
+        }
+    }
+}
 fun toSerializable(stroke: Stroke) : SerializableStroke {
     val serializable = SerializableStroke(
         Pair(stroke.startOffset.x, stroke.startOffset.y),

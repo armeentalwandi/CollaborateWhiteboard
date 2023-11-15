@@ -9,8 +9,10 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -27,6 +29,11 @@ import java.util.UUID
 import kotlin.math.pow
 import kotlin.math.sqrt
 
+import models.Stroke as MyStroke
+
+
+import androidx.compose.ui.graphics.drawscope.Stroke
+
 @Composable
 fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
 
@@ -34,12 +41,15 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
     var colour by remember { mutableStateOf(Color(255, 0, 0)) }
     val lines = remember { mutableStateListOf<Line>() }
-    val strokes = remember { mutableStateListOf<Stroke>() }
-    var currentStroke: Stroke? by remember { mutableStateOf(null) }
+    val strokes = remember { mutableStateListOf<MyStroke>() }
+    var currentStroke: MyStroke? by remember { mutableStateOf(null) }
     var canvasSize by remember { mutableStateOf(Size(0f, 0f)) }
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
     val undoStack = remember { mutableStateListOf<Action>() }
     val redoStack = remember { mutableStateListOf<Action>() }
+    var selectionBox by remember { mutableStateOf<Rect?>(null) }
+    var selectedStrokes by remember { mutableStateOf<List<MyStroke>>(listOf()) }
+
 
     var showShapeOptionsScreen by remember { mutableStateOf(false) }
     var selectedShapeType by remember { mutableStateOf<ShapeType?>(null) }
@@ -177,7 +187,9 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
     var initialDragPosition: Offset? = null
 
 
+
     // Handling drag gestures for drawing and other interactions on the canvas
+    var dragStartPosition by remember { mutableStateOf<Offset?>(null) }
     Canvas(modifier = Modifier
         .fillMaxSize()
         .onSizeChanged { size ->
@@ -190,7 +202,7 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                     // Logic for handling drag start based on the selected mode
                                     initialDragPosition = offset
                                     if (selectedMode == "DRAW_LINES") {
-                                        currentStroke = Stroke(offset, userId = TEMP_UUID, strokeId = UUID.randomUUID().toString(), lines = mutableListOf())
+                                        currentStroke = MyStroke(offset, userId = TEMP_UUID, strokeId = UUID.randomUUID().toString(), lines = mutableListOf())
                                     } else if (selectedMode == "DRAW_SHAPES") {
                                         if (selectedShapeType == ShapeType.Circle) {
                                             currentStroke = createCircleStroke(center = offset, initialRadius=0f, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize)
@@ -198,6 +210,9 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                             currentStroke = createRectangleStroke(topLeft = offset, bottomRight = offset, colour = colour, strokeSize = strokeSize)
                                         } else if (selectedShapeType == ShapeType.Triangle) {
                                             currentStroke = createTriangleStroke(vertex1 = offset, dragEnd = Offset(offset.x + 1f, offset.y + 1f), colour = colour, strokeSize = strokeSize, canvasSize=canvasSize)                                        }
+                                    } else if (selectedMode == "SELECT_LINES") {
+                                        dragStartPosition = offset
+                                        selectionBox = Rect(offset.x, offset.y, offset.x, offset.y)
                                     }
                                 },
 
@@ -205,7 +220,6 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                     // Logic for handling drag (e.g., drawing lines, erasing, drawing shapes)
                                     change.consume()
                                     val startPosition = change.position - dragAmount
-                                    val startPositionTriangle = initialDragPosition ?: return@detectDragGestures
                                     val endPosition = change.position
                                     if (isWithinCanvasBounds(startPosition, canvasSize) && isWithinCanvasBounds(endPosition, canvasSize)) {
                                         if (selectedMode == "DRAW_LINES") {
@@ -222,7 +236,7 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                         } else if (selectedMode == "ERASE") {
                                             // ERASE LOGIC
                                             // Find if any stroke has overlapping lines.
-                                            var erasableStroke: Stroke? = null
+                                            var erasableStroke: MyStroke? = null
                                             for (stroke in strokes) {
                                                 for (line in stroke.lines) {
                                                     if (doLinesCross(startPosition, endPosition, line.startOffset, line.endOffset)) {
@@ -260,7 +274,22 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                                 currentStroke = createTriangleStroke(vertex1 = currentStroke!!.startOffset, dragEnd = endPosition, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize)
                                             }
                                         } else if (selectedMode == "SELECT_LINES") {
-                                            // SELECT ANYTHING WITHIN THE BOUNDS OF THE SELECTION
+                                            selectionBox?.let {
+                                                val newLeft = minOf(it.left, change.position.x)
+                                                val newTop = minOf(it.top, change.position.y)
+                                                val newRight = maxOf(it.right, change.position.x)
+                                                val newBottom = maxOf(it.bottom, change.position.y)
+                                                selectionBox = Rect(newLeft, newTop, newRight, newBottom)
+
+                                                val newPosition = change.position
+                                                dragStartPosition?.let { startPos ->
+                                                    val delta = newPosition - startPos
+                                                    selectedStrokes.forEach { stroke ->
+                                                        stroke.moveBy(delta)
+                                                    }
+                                                    dragStartPosition = newPosition // Update the start position
+                                                }
+                                            }
                                         }
                                     }
                                 },
@@ -277,6 +306,17 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                         undoStack.add(Action.AddStroke(currentStroke!!))
                                         redoStack.clear()  // Clear redo stack when a new action is done
                                         selectedShapeType = null
+                                    } else if (selectedMode == "SELECT_LINES") {
+                                        // Determine which strokes are within the selection box
+                                        selectedStrokes = strokes.filter { stroke ->
+                                            stroke.lines.any { line ->
+                                                selectionBox?.contains(line.startOffset) == true &&
+                                                        selectionBox?.contains(line.endOffset) == true
+                                            }
+                                        }
+                                        // Reset the selection box
+                                        selectionBox = null
+                                        dragStartPosition = null // Reset the drag start position
                                     }
 
                                     // I WANT TO POST STROKE HERE
@@ -302,6 +342,30 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                 end = currStrokeLine.endOffset,
                 strokeWidth = currStrokeLine.strokeWidth.toPx(),
                 cap = StrokeCap.Round
+            )
+        }
+
+        selectedStrokes.forEach { stroke ->
+            stroke.lines.forEach { line ->
+                drawLine(
+                    color = line.color,
+                    start = line.startOffset,
+                    end = line.endOffset,
+                    strokeWidth = line.strokeWidth.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
+        }
+
+        selectionBox?.let { box ->
+            drawRect(
+                color = Color.Blue,
+                topLeft = Offset(box.left, box.top),
+                size = Size(box.width, box.height),
+                style = Stroke(
+                    width = 2f,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                )
             )
         }
 
@@ -394,3 +458,4 @@ private fun distanceBetweenTwoPoints(offset1: Offset, offset2: Offset): Float {
 private fun isWithinCanvasBounds(offset: Offset, canvasSize: Size): Boolean {
     return offset.x >= 0f && offset.x <= canvasSize.width && offset.y >= 0f && offset.y <= canvasSize.height
 }
+
