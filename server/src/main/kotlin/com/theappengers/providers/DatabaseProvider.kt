@@ -1,5 +1,7 @@
 package com.theappengers.providers
 
+import com.theappengers.schemas.RoomsTable
+import com.theappengers.schemas.RoomsToUsersTable
 import com.theappengers.schemas.StrokesTable
 import com.theappengers.schemas.UsersTable
 import io.github.cdimascio.dotenv.Dotenv
@@ -21,7 +23,8 @@ class DatabaseProvider() {
         transaction {
             SchemaUtils.create(StrokesTable)
             SchemaUtils.create(UsersTable)
-
+            SchemaUtils.create(RoomsTable)
+            SchemaUtils.create(RoomsToUsersTable)
         }
     }
 }
