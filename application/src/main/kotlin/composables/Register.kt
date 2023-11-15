@@ -13,18 +13,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.*
 
+// Enumeration to represent user roles
 enum class Role {
     Student,
     Professor
 }
 
+// Composable function for the registration page
 @Composable
-fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
+fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var role by remember { mutableStateOf(Role.Student) }
+    val role by remember { mutableStateOf(Role.Student) }
 
     Column(
         modifier = Modifier
@@ -33,6 +35,7 @@ fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Header Text for the registration page
         Text(
             text = "Registration",
             style = MaterialTheme.typography.h4,
@@ -41,6 +44,7 @@ fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Email input field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -50,6 +54,7 @@ fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // First name input field
         OutlinedTextField(
             value = firstName,
             onValueChange = { firstName = it },
@@ -59,6 +64,7 @@ fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Last name input field
         OutlinedTextField(
             value = lastName,
             onValueChange = { lastName = it },
@@ -68,7 +74,8 @@ fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        PasswordField(
+        // Password input field (custom composable)
+        passwordField(
             password = password,
             onPasswordChange = { password = it }
         )
@@ -76,13 +83,15 @@ fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
 
         var selectedRole by remember { mutableStateOf(Role.Student) }
 
-        DropdownTextField(
+        // DropdownTextField for selecting the user's role
+        dropdownTextField(
             role = selectedRole,
             onRoleChange = { selectedRole = it }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Row for Back and Register buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -124,94 +133,15 @@ fun RegistrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
     }
 }
 
-
-//@Composable
-//fun RegistrationPage(onRegistrationSuccessful: () -> Unit) {
-//
-//    var email by remember { mutableStateOf("") }
-//    var firstName by remember { mutableStateOf("") }
-//    var lastName by remember { mutableStateOf("") }
-//    var password by remember { mutableStateOf("") }
-//    var passwordConfirmation by remember { mutableStateOf("") }
-//    var role by remember { mutableStateOf(Role.Student) }
-//
-//
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(16.dp),
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center
-//    ) {
-//        Text(
-//            text = "Registration",
-//            style = MaterialTheme.typography.h4,
-//            color = Color.Blue
-//        )
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        OutlinedTextField(
-//            value = email,
-//            onValueChange = { email = it },
-//            label = { Text("Email") },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        OutlinedTextField(
-//            value = firstName,
-//            onValueChange = { firstName = it },
-//            label = { Text("First Name") },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        OutlinedTextField(
-//            value = lastName,
-//            onValueChange = { lastName = it },
-//            label = { Text("Last Name") },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        PasswordField(
-//            password = password,
-//            onPasswordChange = { password = it }
-//        )
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        var selectedRole by remember { mutableStateOf(Role.Student) }
-//
-//        DropdownTextField(
-//            role = selectedRole,
-//            onRoleChange = { selectedRole = it }
-//        )
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        Button(
-//            onClick = {
-//                // Handle registration logic here
-//            },
-//            modifier = Modifier.fillMaxWidth()
-//        ) {
-//            Text(text = "Register")
-//        }
-//
-//
-//    }
-//}
-
+// Composable function for the DropdownTextField used for selecting user roles
 @Composable
-fun DropdownTextField(role: Role, onRoleChange: (Role) -> Unit) {
+fun dropdownTextField(role: Role, onRoleChange: (Role) -> Unit) {
+
+    // State variables for dropdown visibility and selected text
     var expanded by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf(role.name) }
 
+    // TextField with dropdown functionality
     TextField(
         value = text,
         onValueChange = { text = it },
@@ -226,7 +156,7 @@ fun DropdownTextField(role: Role, onRoleChange: (Role) -> Unit) {
             }
         }
     )
-
+    // DropdownMenu to display role options
     if (expanded) {
         DropdownMenu(
             expanded = expanded,
@@ -235,6 +165,7 @@ fun DropdownTextField(role: Role, onRoleChange: (Role) -> Unit) {
             }
         ) {
             for (item in Role.values()) {
+                // DropdownMenuItem for each role option
                 DropdownMenuItem(onClick = {
                     onRoleChange(item)
                     text = item.name

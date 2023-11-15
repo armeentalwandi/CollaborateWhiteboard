@@ -9,7 +9,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -29,11 +28,13 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 @Composable
-fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
+fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
+
+    // Variable declarations for managing state and storing whiteboard elements
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
     var colour by remember { mutableStateOf(Color(255, 0, 0)) }
     val lines = remember { mutableStateListOf<Line>() }
-    var strokes = remember { mutableStateListOf<Stroke>() }
+    val strokes = remember { mutableStateListOf<Stroke>() }
     var currentStroke: Stroke? by remember { mutableStateOf(null) }
     var canvasSize by remember { mutableStateOf(Size(0f, 0f)) }
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
@@ -42,13 +43,14 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
 
     var showShapeOptionsScreen by remember { mutableStateOf(false) }
     var selectedShapeType by remember { mutableStateOf<ShapeType?>(null) }
-    var selectionArea by remember { mutableStateOf<Rect?>(null) }
 
 
+    // Handling specific scenarios based on the selected mode
     if (selectedMode == "DRAW_SHAPES" && selectedShapeType == null) {
         showShapeOptionsScreen = true
     }
 
+    // Retrieving strokes from the server on composition for a specific user
     runBlocking {
         launch {
             strokes.clear()
@@ -63,6 +65,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
         }
     }
 
+    // Function to handle undo action
     fun undo() {
         if (undoStack.isNotEmpty()) {
             val lastAction = undoStack.removeLast()
@@ -85,14 +88,14 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                         }
                     }
                 }
-                is Action.ChangeColor -> {
-                    // Restore to the previous color or handle accordingly
+                is Action.ChangeColor -> { // Restore to the previous color or handle accordingly
                 }
             }
             redoStack.add(lastAction)  // Push to redo stack
         }
     }
 
+    // Function to handle redo action
     fun redo() {
         if (redoStack.isNotEmpty()) {
             val actionToRedo = redoStack.removeLast()
@@ -126,23 +129,27 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
     }
 
 
+    // Row with undo, redo buttons, slider, and color picker button
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
+        // Undo Button
         Button(onClick = { undo() }, enabled = undoStack.isNotEmpty()) {
             Text("Undo")
         }
 
         Spacer(modifier = Modifier.width(8.dp))  // Add some space between the buttons
 
+        // Redo Button
         Button(onClick = { redo() }, enabled = redoStack.isNotEmpty()) {
             Text("Redo")
         }
 
         Spacer(modifier = Modifier.weight(1f)) // Dynamic spacing to push the slider to the left
 
+        // Slider for adjusting stroke size
         Slider(
             value = strokeSize,
             valueRange = 1f..20f,
@@ -155,6 +162,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
 
         Spacer(modifier = Modifier.weight(1f)) // Dynamic spacing between the slider and the row
 
+        // Button to open the color picker dialog
         TextButton(
             onClick = {
                 colourPickerDialog = true
@@ -168,6 +176,8 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
     Spacer(modifier = Modifier.height(16.dp)) // Add spacing between the row and the canvas
     var initialDragPosition: Offset? = null
 
+
+    // Handling drag gestures for drawing and other interactions on the canvas
     Canvas(modifier = Modifier
         .fillMaxSize()
         .onSizeChanged { size ->
@@ -177,6 +187,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
         .pointerInput(selectedMode) {
                             detectDragGestures (
                                 onDragStart = { offset ->
+                                    // Logic for handling drag start based on the selected mode
                                     initialDragPosition = offset
                                     if (selectedMode == "DRAW_LINES") {
                                         currentStroke = Stroke(offset, userId = TEMP_UUID, strokeId = UUID.randomUUID().toString(), lines = mutableListOf())
@@ -191,6 +202,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                 },
 
                                 onDrag = { change, dragAmount ->
+                                    // Logic for handling drag (e.g., drawing lines, erasing, drawing shapes)
                                     change.consume()
                                     val startPosition = change.position - dragAmount
                                     val startPositionTriangle = initialDragPosition ?: return@detectDragGestures
@@ -209,37 +221,36 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                             lines.add(line)
                                         } else if (selectedMode == "ERASE") {
                                             // ERASE LOGIC
-
                                             // Find if any stroke has overlapping lines.
-                                            var eraseableStroke: Stroke? = null
+                                            var erasableStroke: Stroke? = null
                                             for (stroke in strokes) {
                                                 for (line in stroke.lines) {
                                                     if (doLinesCross(startPosition, endPosition, line.startOffset, line.endOffset)) {
-                                                        eraseableStroke = stroke
+                                                        erasableStroke = stroke
                                                         break
                                                     }
                                                 }
                                             }
 
-                                            if (eraseableStroke != null) {
+                                            if (erasableStroke != null) {
                                                 // Send deletion to the server
                                                 runBlocking {
                                                     launch {
-                                                        apiClient.deleteStroke(UUID.fromString(eraseableStroke.strokeId))
+                                                        apiClient.deleteStroke(UUID.fromString(erasableStroke.strokeId))
                                                     }
                                                 }
-                                                strokes.remove(eraseableStroke)
-                                                eraseableStroke.lines.forEach {
+                                                strokes.remove(erasableStroke)
+                                                erasableStroke.lines.forEach {
                                                     lines.remove(it)
                                                 }
                                                 // Add the deleted stroke to history for undo functionality
-                                                undoStack.add(Action.DeleteStroke(eraseableStroke))
+                                                undoStack.add(Action.DeleteStroke(erasableStroke))
                                                 redoStack.clear()  // Clear redo stack when a new action is done
                                             }
 
                                         } else if (selectedMode == "DRAW_SHAPES") {
                                             if (selectedShapeType == ShapeType.Circle) {
-                                                val radius = DistanceBetweenPoints(currentStroke!!.center!!, endPosition)
+                                                val radius = distanceBetweenTwoPoints(currentStroke!!.center!!, endPosition)
                                                 currentStroke = createCircleStroke(currentStroke!!.center!!, radius, colour, strokeSize, canvasSize)
                                             } else if (selectedShapeType == ShapeType.Rectangle) {
                                                 currentStroke = createRectangleStroke(topLeft = currentStroke!!.startOffset, bottomRight = endPosition, colour = colour, strokeSize = strokeSize)
@@ -254,6 +265,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                                     }
                                 },
                                 onDragEnd = {
+                                    // Logic for handling drag end (e.g., completing strokes)
                                     if (selectedMode == "DRAW_LINES") {
                                         currentStroke?.endOffset = currentStroke?.lines?.last()?.endOffset!!
                                         strokes.add(currentStroke!!)
@@ -282,6 +294,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
                             )
         },
     ) {
+        // Drawing current strokes and lines
         currentStroke?.lines?.forEach { currStrokeLine ->
             drawLine(
                 color = currStrokeLine.color,
@@ -303,7 +316,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
         }
     }
 
-
+    // Dialog for choosing color
     if (colourPickerDialog) {
         Dialog(
             onDismissRequest = {
@@ -328,8 +341,8 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
             title = { Text("Select a Shape") },
             buttons = {
                 // Display shape options in the dialog
-                ShapeOptionsDialogButtons { selectedShape ->
-                    // Handle the selected shape (e.g., set it in the Whiteboard composable)
+                shapeOptionsDialogButtons { selectedShape ->
+                    // Handle the selected shape (e.g., set it in the whiteboard composable)
                     selectedShapeType = selectedShape
                     showShapeOptionsScreen = false // Close the dialog
                 }
@@ -339,6 +352,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
 
 }
 
+// function to determine if 2 lines intersect, returns a boolean
 private fun doLinesCross(line1start: Offset, line1end: Offset, line2start: Offset, line2end: Offset): Boolean {
     // Calculate the direction of the lines
     val a1 = line1end.y - line1start.y
@@ -372,7 +386,7 @@ private fun doLinesCross(line1start: Offset, line1end: Offset, line2start: Offse
 }
 
 
-private fun DistanceBetweenPoints(offset1: Offset, offset2: Offset): Float {
+private fun distanceBetweenTwoPoints(offset1: Offset, offset2: Offset): Float {
     return sqrt((offset1.x - offset2.x).pow(2) + (offset1.y - offset2.y).pow(2))
 }
 

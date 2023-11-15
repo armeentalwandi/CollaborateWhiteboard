@@ -3,8 +3,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import composables.loginPage
-import composables.TwoColumnLayout
-import composables.RegistrationPage
+import composables.twoColumnLayout
+import composables.registrationPage
 
 // Create an instance of the ApiClient class for making API requests
 val apiClient: ApiClient = ApiClient()
@@ -26,7 +26,7 @@ fun app() {
 
     // Compose UI based on the current screen
     when (currentScreen) {
-        Screen.Welcome -> WelcomePage(
+        Screen.Welcome -> welcomePage(
             onLoginClick = {currentScreen = Screen.Login},
             onRegisterClick = {currentScreen = Screen.Register})
 
@@ -35,11 +35,11 @@ fun app() {
             onBack = {currentScreen = Screen.Welcome},
             onNoAccount = { currentScreen = Screen.Register })
 
-        Screen.Register -> RegistrationPage(
+        Screen.Register -> registrationPage(
             onRegistrationSuccessful =  { currentScreen = Screen.Login },
             onBack = {currentScreen = Screen.Welcome})
 
-        Screen.TwoColumnLayout -> TwoColumnLayout()
+        Screen.TwoColumnLayout -> twoColumnLayout()
     }
 }
 
@@ -47,7 +47,7 @@ fun app() {
 fun main() = application {
 
     Window(
-        title = "Appenger's Whiteboard",
+        title = "Appenger's whiteboard",
         onCloseRequest = ::exitApplication
     ) {
         // Call the main Composable function to build the UI

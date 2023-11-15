@@ -14,11 +14,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 
+// Composable function for the login page
 @Composable
 fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: () -> Unit) {
+    // State variables for email and password
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // Column to layout components vertically
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -26,6 +29,7 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Header Text for the login page
         Text(
             text = "Login",
             style = MaterialTheme.typography.h4,
@@ -34,6 +38,7 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Email input field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -43,17 +48,20 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        PasswordField(
+        // Password input field (custom composable)
+        passwordField(
             password = password,
             onPasswordChange = { password = it }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Text to navigate to registration page
         Text("Don't have an account? ", color = Color.Blue, modifier = Modifier.clickable { onNoAccount() })
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Row for Back and Login buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -71,12 +79,12 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
             Button(
                 onClick = {
                     // Handle login logic here
-
                     // Use coroutineScope to make an authentication request
                     runBlocking {
                         launch {
                             // Perform authentication request and get a token
                             val token = apiClient.loginRequest(email.trim(), password.trim())
+
                             // Check if authentication was successful
                             if (token != "Invalid Credentials"){
                                 onLoginSuccessful()
@@ -94,12 +102,14 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
     }
 }
 
-
+// Composable function for the PasswordField
 @Composable
-fun PasswordField(password: String, onPasswordChange: (String) -> Unit) {
+fun passwordField(password: String, onPasswordChange: (String) -> Unit) {
+    // State variable to toggle password visibility
     var isPasswordVisible by remember { mutableStateOf(false) }
 
     Column {
+        // Password input field with visibility toggle
         OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
@@ -111,10 +121,12 @@ fun PasswordField(password: String, onPasswordChange: (String) -> Unit) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Row for checkbox and label to show/hide password
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
+            // Checkbox to toggle password visibility
             Checkbox(
                 checked = isPasswordVisible,
                 onCheckedChange = { isPasswordVisible = it }
