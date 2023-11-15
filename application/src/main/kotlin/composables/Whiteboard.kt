@@ -1,6 +1,5 @@
 package composables
 
-import ColorPicker
 import TEMP_UUID
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -10,6 +9,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -42,6 +42,8 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
 
     var showShapeOptionsScreen by remember { mutableStateOf(false) }
     var selectedShapeType by remember { mutableStateOf<ShapeType?>(null) }
+    var selectionArea by remember { mutableStateOf<Rect?>(null) }
+
 
     if (selectedMode == "DRAW_SHAPES" && selectedShapeType == null) {
         showShapeOptionsScreen = true
@@ -315,7 +317,7 @@ fun Whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null) {
             Column(
                 modifier = Modifier.background(Color.White) // Set dialog background color
             ) {
-                ColourWheel(colour, onColourSelected = { selectedColour ->
+                colourWheel(colour, onColourSelected = { selectedColour ->
                     colour = selectedColour
                 })
             }

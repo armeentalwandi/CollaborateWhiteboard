@@ -1,41 +1,57 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.material.ScrollableTabRow
 import androidx.compose.runtime.*
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import composables.LoginPage
+import composables.loginPage
 import composables.TwoColumnLayout
 import composables.RegistrationPage
 
-
+// Create an instance of the ApiClient class for making API requests
 val apiClient: ApiClient = ApiClient()
-val TEMP_UUID = "af7c1fe6-d669-414e-b066-e9733f0de7a8"
 
+// Temporary UUID for testing purposes
+const val TEMP_UUID = "af7c1fe6-d669-414e-b066-e9733f0de7a8"
+
+// Enum to represent different screens in the application
 enum class Screen {
     Welcome, Login, Register, TwoColumnLayout
 }
 
+// Main Composable function for the application
 @Composable
 @Preview
-fun App() {
+fun app() {
 
     var currentScreen by remember { mutableStateOf(Screen.Welcome) }
 
+    // Compose UI based on the current screen
     when (currentScreen) {
-        Screen.Welcome -> WelcomePage(onLoginClick = {currentScreen = Screen.Login}, onRegisterClick = {currentScreen = Screen.Register})
-        Screen.Login -> LoginPage(onLoginSuccessful = { currentScreen = Screen.TwoColumnLayout }, onBack = {currentScreen = Screen.Welcome}, onNoAccount = { currentScreen = Screen.Register })
-        Screen.Register -> RegistrationPage( onRegistrationSuccessful =  { currentScreen = Screen.Login }, onBack = {currentScreen = Screen.Welcome})
+        Screen.Welcome -> WelcomePage(
+            onLoginClick = {currentScreen = Screen.Login},
+            onRegisterClick = {currentScreen = Screen.Register})
+
+        Screen.Login -> loginPage(
+            onLoginSuccessful = { currentScreen = Screen.TwoColumnLayout },
+            onBack = {currentScreen = Screen.Welcome},
+            onNoAccount = { currentScreen = Screen.Register })
+
+        Screen.Register -> RegistrationPage(
+            onRegistrationSuccessful =  { currentScreen = Screen.Login },
+            onBack = {currentScreen = Screen.Welcome})
+
         Screen.TwoColumnLayout -> TwoColumnLayout()
     }
 }
 
+// Main function to start the application
 fun main() = application {
 
     Window(
         title = "Appenger's Whiteboard",
         onCloseRequest = ::exitApplication
     ) {
-        App()
+        // Call the main Composable function to build the UI
+        app()
     }
 }
 
