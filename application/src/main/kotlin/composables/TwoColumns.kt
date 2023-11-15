@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
+// Enumeration to represent different drawing modes
 enum class Mode(val resource: String) {
     DRAW_LINES("pen.svg"),
     ERASE("eraser.svg"),
@@ -18,8 +19,9 @@ enum class Mode(val resource: String) {
     DRAW_SHAPES("shapes.svg")
 }
 
+// Composable function for the two-column layout for the WhiteBoard
 @Composable
-fun TwoColumnLayout() {
+fun twoColumnLayout() {
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(modifier = Modifier.fillMaxSize()) {
@@ -34,7 +36,7 @@ fun TwoColumnLayout() {
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Mode.entries.forEach { mode ->
-                        ModeButton(mode) {
+                        modeButton(mode) {
                             selectedMode = mode
                         }
                     }
@@ -47,15 +49,18 @@ fun TwoColumnLayout() {
                         .fillMaxHeight()
                         .padding(16.dp)
                 ) {
-                    Whiteboard(selectedMode = selectedMode.name, shape = null)
+                    // whiteboard component with the selected drawing mode
+                    whiteboard(selectedMode = selectedMode.name, shape = null)
                 }
             }
         }
     }
 }
 
+// Composable function for a button representing a drawing mode
 @Composable
-fun ModeButton(mode: Mode, onClick: () -> Unit) {
+fun modeButton(mode: Mode, onClick: () -> Unit) {
+    // TextButton with an Image representing the drawing mode
     TextButton(
         onClick = onClick,
         modifier = Modifier
