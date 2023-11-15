@@ -3,14 +3,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.layout.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.material.*
 import androidx.compose.ui.Modifier
 
+// Composable function for the welcome page
 @Composable
-fun WelcomePage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
+fun welcomePage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -19,12 +19,15 @@ fun WelcomePage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(text = "Welcome to the Appenger's Whiteboard!", style = MaterialTheme.typography.h4)
+            // Welcome message
+            Text(text = "Welcome to the Appenger's whiteboard!", style = MaterialTheme.typography.h4)
 
+            // Login Button
             Button(onClick = onLoginClick) {
                 Text(text = "Login")
             }
 
+            // Register Button
             Button(onClick = onRegisterClick) {
                 Text(text = "Register")
             }
