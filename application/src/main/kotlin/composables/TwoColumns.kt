@@ -4,8 +4,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -22,9 +24,10 @@ enum class Mode(val resource: String) {
 
 // Composable function for the two-column layout for the WhiteBoard
 @Composable
-fun twoColumnLayout(data: AppData) {
+fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
+
             Row(modifier = Modifier.fillMaxSize()) {
                 // Left Column
                 var selectedMode by remember { mutableStateOf(Mode.DRAW_LINES) }
@@ -36,6 +39,15 @@ fun twoColumnLayout(data: AppData) {
                         .padding(16.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
+                    // Back button
+                    TextButton(
+                        onClick = onBack,
+                        modifier = Modifier
+                            .padding(16.dp)
+                    ) {
+                        Text(text = "Back")
+                    }
+
                     Mode.entries.forEach { mode ->
                         modeButton(mode) {
                             selectedMode = mode

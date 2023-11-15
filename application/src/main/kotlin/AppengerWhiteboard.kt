@@ -5,6 +5,7 @@ import androidx.compose.ui.window.application
 import composables.loginPage
 import composables.twoColumnLayout
 import composables.registrationPage
+import composables.roomsDashboard
 import models.AppData
 
 // Create an instance of the ApiClient class for making API requests
@@ -12,7 +13,7 @@ val apiClient: ApiClient = ApiClient()
 
 // Enum to represent different screens in the application
 enum class Screen {
-    Welcome, Login, Register, TwoColumnLayout
+    Welcome, Login, Register, RoomsDashboard, TwoColumnLayout
 }
 
 // Main Composable function for the application
@@ -30,7 +31,7 @@ fun app() {
             onRegisterClick = {currentScreen = Screen.Register})
 
         Screen.Login -> loginPage(
-            onLoginSuccessful = { currentScreen = Screen.TwoColumnLayout },
+            onLoginSuccessful = { currentScreen = Screen.RoomsDashboard },
             onBack = {currentScreen = Screen.Welcome},
             onNoAccount = { currentScreen = Screen.Register },
             data = appData)
@@ -39,7 +40,16 @@ fun app() {
             onRegistrationSuccessful =  { currentScreen = Screen.Login },
             onBack = {currentScreen = Screen.Welcome})
 
-        Screen.TwoColumnLayout -> twoColumnLayout(data = appData)
+        Screen.RoomsDashboard -> roomsDashboard(
+            appData = appData,
+            onSignOut = { currentScreen = Screen.Login },
+            onGoToWhiteboard = { currentScreen = Screen.TwoColumnLayout}
+        )
+
+        Screen.TwoColumnLayout -> twoColumnLayout(
+            data = appData,
+            onBack = { currentScreen = Screen.RoomsDashboard }
+        )
     }
 }
 
