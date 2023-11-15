@@ -25,7 +25,6 @@ class ApiClient {
 
         // Map over the list and decode each string to get SerializableStroke
         val result = jsonStringList.map { Json.decodeFromString<SerializableStroke>(it) }
-        println(result)
 
         // Step 2: Map over the list and decode each string to get SerializableStroke
         return jsonStringList.map { Json.decodeFromString<SerializableStroke>(it) }
@@ -61,7 +60,7 @@ class ApiClient {
 
     // Replace with your actual server API endpoint
     // Function to send a login request to the server
-    suspend fun loginRequest(email: String, password: String): String {
+    suspend fun loginRequest(email: String, password: String): Pair<String, User?> {
         val url = "$baseUrl/auth/login"
 
         // Create a LoginRequest object with email and password
@@ -74,10 +73,11 @@ class ApiClient {
             }
 
             // Decode the response to get the login token
-            Json.decodeFromString<LoginResponse>(response.body()).token
+            val decoded = Json.decodeFromString<LoginResponse>(response.body())
+            Pair(decoded.token, decoded.user)
         } catch(e: Exception) {
             // Handle exceptions (e.g., invalid credentials)
-            "Invalid Credentials"
+            Pair("Invalid Credentials", null)
         }
     }
 
