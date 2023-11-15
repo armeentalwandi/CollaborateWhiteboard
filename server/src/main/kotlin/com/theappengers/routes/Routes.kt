@@ -51,7 +51,6 @@ fun Routing.strokeRoutes() {
                 val strokeId = call.parameters["strokeId"]?: null
                 if (strokeId != null) {
                     val strokeIdUUID = UUID.fromString(strokeId)
-                    println("$strokeIdUUID HELOOOOOOOOOOO")
                     transaction {
                         // Logic to delete the stroke with the given ID from the database.
                         StrokesTable.deleteWhere { StrokesTable.strokeId eq strokeIdUUID }

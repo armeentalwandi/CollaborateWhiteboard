@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import models.AppData
 
 // Enumeration to represent different drawing modes
 enum class Mode(val resource: String) {
@@ -21,7 +22,7 @@ enum class Mode(val resource: String) {
 
 // Composable function for the two-column layout for the WhiteBoard
 @Composable
-fun twoColumnLayout() {
+fun twoColumnLayout(data: AppData) {
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(modifier = Modifier.fillMaxSize()) {
@@ -50,7 +51,7 @@ fun twoColumnLayout() {
                         .padding(16.dp)
                 ) {
                     // whiteboard component with the selected drawing mode
-                    whiteboard(selectedMode = selectedMode.name, shape = null)
+                    whiteboard(appData = data, selectedMode = selectedMode.name, shape = null)
                 }
             }
         }

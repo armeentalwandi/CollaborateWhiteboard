@@ -1,7 +1,9 @@
 package com.theappengers.routes
 
 import LoginRequest
+import LoginResponse
 import RegisterRequest
+import User
 import com.theappengers.configs.JwtConfig
 import com.theappengers.schemas.*
 import io.ktor.http.*
@@ -18,7 +20,7 @@ fun Routing.authRoutes() {
             val loginRequest = Json.decodeFromString<LoginRequest>(text)
 
             if (!UsersTable.doesEmailExist(loginRequest.email)) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("token" to "Invalid Credentials"))
+                call.respond(HttpStatusCode.BadRequest, Pair("Invalid Credentials", null))
                 return@post
             }
 
@@ -26,9 +28,9 @@ fun Routing.authRoutes() {
 
             if (user != null && UsersTable.isValidPassword(loginRequest.password, user.hashedPassword)) {
                 val token = JwtConfig.makeToken(user)
-                call.respond(mapOf("token" to token))
+                call.respond(LoginResponse(token, User(user.userId.toString(), user.email, user.firstName, user.lastName, user.authLevel)))
             } else {
-                call.respond(HttpStatusCode.Unauthorized, mapOf("token" to "Invalid Credentials"))
+                call.respond(HttpStatusCode.Unauthorized, LoginResponse("Invalid Credentials", null))
             }
         }
 

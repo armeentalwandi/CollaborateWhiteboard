@@ -12,11 +12,12 @@ import androidx.compose.ui.unit.dp
 import apiClient
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import models.AppData
 
 
 // Composable function for the login page
 @Composable
-fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: () -> Unit) {
+fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: () -> Unit, data: AppData) {
     // State variables for email and password
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -83,10 +84,11 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
                     runBlocking {
                         launch {
                             // Perform authentication request and get a token
-                            val token = apiClient.loginRequest(email.trim(), password.trim())
+                            val response = apiClient.loginRequest(email.trim(), password.trim())
 
                             // Check if authentication was successful
-                            if (token != "Invalid Credentials"){
+                            if (response.first != "Invalid Credentials"){
+                                data.user = response.second
                                 onLoginSuccessful()
                             }
                             email = ""

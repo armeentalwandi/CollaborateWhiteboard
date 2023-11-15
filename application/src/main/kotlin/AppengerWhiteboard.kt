@@ -5,12 +5,10 @@ import androidx.compose.ui.window.application
 import composables.loginPage
 import composables.twoColumnLayout
 import composables.registrationPage
+import models.AppData
 
 // Create an instance of the ApiClient class for making API requests
 val apiClient: ApiClient = ApiClient()
-
-// Temporary UUID for testing purposes
-const val TEMP_UUID = "af7c1fe6-d669-414e-b066-e9733f0de7a8"
 
 // Enum to represent different screens in the application
 enum class Screen {
@@ -23,6 +21,7 @@ enum class Screen {
 fun app() {
 
     var currentScreen by remember { mutableStateOf(Screen.Welcome) }
+    var appData by remember { mutableStateOf(AppData(null, null)) }
 
     // Compose UI based on the current screen
     when (currentScreen) {
@@ -33,13 +32,14 @@ fun app() {
         Screen.Login -> loginPage(
             onLoginSuccessful = { currentScreen = Screen.TwoColumnLayout },
             onBack = {currentScreen = Screen.Welcome},
-            onNoAccount = { currentScreen = Screen.Register })
+            onNoAccount = { currentScreen = Screen.Register },
+            data = appData)
 
         Screen.Register -> registrationPage(
             onRegistrationSuccessful =  { currentScreen = Screen.Login },
             onBack = {currentScreen = Screen.Welcome})
 
-        Screen.TwoColumnLayout -> twoColumnLayout()
+        Screen.TwoColumnLayout -> twoColumnLayout(data = appData)
     }
 }
 
