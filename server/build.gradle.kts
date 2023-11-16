@@ -42,6 +42,8 @@ dependencies {
 
     implementation("org.xerial:sqlite-jdbc:3.39.3.0")
 
+    implementation("org.postgresql:postgresql:42.6.0")
+
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     testImplementation("io.ktor:ktor-server-tests-jvm")
