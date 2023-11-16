@@ -34,7 +34,10 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
 
         // Button to sign out
         Button(
-            onClick = { onSignOut() },
+            onClick = {
+                appData.user = null
+                onSignOut()
+            },
             modifier = Modifier.padding(8.dp)
         ) {
             Text(text = "Sign Out")
