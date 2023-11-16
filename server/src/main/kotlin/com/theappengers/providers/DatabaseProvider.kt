@@ -12,12 +12,28 @@ import org.jetbrains.exposed.sql.transactions.transaction
 class DatabaseProvider() {
 
     fun init(){
+
         val dotenv = Dotenv.configure().directory("server/").load()
-        val dbUrl = dotenv["DATABASE_URL"]
+
+        val env = dotenv["ENV"]
+
         val dbUser = dotenv["DATABASE_USER"]
         val dbPassword = dotenv["DATABASE_PASSWORD"]
+        var dbUrl = ""
+        var driver = ""
+
+        if (env == "local") {
+            dbUrl = dotenv["DATABASE_URL"]
+            driver = "org.sqlite.JDBC"
+        } else if (env == "remote") {
+            dbUrl = dotenv["CLOUDSQL_URL"]
+            driver = "org.postgresql.driver"
+        }
+
         Database.connect(
             url = dbUrl,
+            user = dbUser,
+            password = dbPassword,
             driver = "org.sqlite.JDBC"
         )
         transaction {
