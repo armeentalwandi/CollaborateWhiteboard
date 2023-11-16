@@ -94,7 +94,7 @@ class ApiClient {
                 setBody(Json.encodeToString(registerRequest))
             }
             // Decode the response to get the login token
-            Json.decodeFromString<LoginResponse>(response.body()).token
+            Json.decodeFromString<RegisterResponse>(response.body()).token
         } catch(e: Exception) {
             "Invalid Credentials"
         }

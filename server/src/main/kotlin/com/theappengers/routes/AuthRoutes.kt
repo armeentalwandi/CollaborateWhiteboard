@@ -3,6 +3,7 @@ package com.theappengers.routes
 import LoginRequest
 import LoginResponse
 import RegisterRequest
+import RegisterResponse
 import User
 import com.theappengers.configs.JwtConfig
 import com.theappengers.schemas.*
@@ -20,7 +21,7 @@ fun Routing.authRoutes() {
             val loginRequest = Json.decodeFromString<LoginRequest>(text)
 
             if (!UsersTable.doesEmailExist(loginRequest.email)) {
-                call.respond(HttpStatusCode.BadRequest, Pair("Invalid Credentials", null))
+                call.respond(HttpStatusCode.BadRequest, LoginResponse("Invalid Credentials", null))
                 return@post
             }
 
@@ -39,14 +40,14 @@ fun Routing.authRoutes() {
             val registerRequest = Json.decodeFromString<RegisterRequest>(text)
 
             if (UsersTable.doesEmailExist(registerRequest.email)) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("token" to "Invalid Credentials"))
+                call.respond(HttpStatusCode.BadRequest, RegisterResponse("Invalid Credentials"))
             }
 
             val hashedPassword = UsersTable.hashPassword(registerRequest.password)
             val newUser = UsersTable.createUser(registerRequest.email, hashedPassword, registerRequest.firstName, registerRequest.lastName, registerRequest.authLevel)
 
             val token = JwtConfig.makeToken(newUser!!)
-            call.respond(HttpStatusCode.OK, mapOf("token" to token))
+            call.respond(HttpStatusCode.OK, RegisterResponse(token))
         }
     }
 }
