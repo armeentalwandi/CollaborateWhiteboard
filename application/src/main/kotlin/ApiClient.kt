@@ -100,5 +100,19 @@ class ApiClient {
         }
     }
 
+    suspend fun updateStrokes(serializedStrokes: List<SerializableStroke>) {
+        val url = "$baseUrl/strokes/update"
+        val updateStrokesRequest = UpdateStrokesRequest(serializedStrokes)
+
+        try {
+            val response = client.put(url) {
+                setBody(Json.encodeToString(updateStrokesRequest))
+            }
+        } catch (e: Exception) {
+            println(e)
+        }
+
+    }
+
 
 }

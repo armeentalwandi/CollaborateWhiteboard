@@ -292,6 +292,8 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                                                 line.startOffset += dragAmount
                                                                 line.endOffset += dragAmount
                                                             }
+                                                            stroke.startOffset += dragAmount
+                                                            stroke.endOffset += dragAmount
                                                         }
                                                     }
                                                     moveStart = change.position
@@ -513,14 +515,8 @@ fun isStrokeInSelectionBox(stroke: Stroke, selectionStart: Offset, selectionEnd:
 }
 
 suspend fun updateStrokesInDatabase(movedStrokes: List<Stroke>) {
-    for (stroke in movedStrokes) {
-        // Remove the old stroke data from the database
-        apiClient.deleteStroke(UUID.fromString(stroke.strokeId))
-
-        // Insert the updated stroke data into the database
-        val updatedStroke = toSerializable(stroke)
-        apiClient.postStroke(updatedStroke)
-    }
+    val serializedStrokes = movedStrokes.map { stroke -> toSerializable(stroke) }
+    apiClient.updateStrokes(serializedStrokes)
 }
 fun isLineWithinCanvasBounds(line: Line, dragAmount: Offset, canvasSize: Size): Boolean {
     val newStart = line.startOffset + dragAmount
