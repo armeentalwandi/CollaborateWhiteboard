@@ -402,6 +402,18 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                     }
                 }
             }
+        } else if (isMovingStroke) {
+            selectedStrokes.forEach { stroke ->
+                stroke.lines.forEach { line ->
+                    drawLine(
+                        color = Color.Yellow, // Highlight color
+                        start = line.startOffset,
+                        end = line.endOffset,
+                        strokeWidth = line.strokeWidth.toPx() + 4.dp.toPx(), // Make the highlight line slightly thicker
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
         }
     }
 
