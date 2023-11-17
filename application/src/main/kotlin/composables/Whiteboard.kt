@@ -8,6 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -280,20 +281,19 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                             }
                                         } else if (selectedMode == "SELECT_LINES") {
                                             if (isMovingStroke) {
-                                                // Check if moveStart is not null before using it
                                                 val currentMoveStart = moveStart
                                                 if (currentMoveStart != null) {
-                                                    val totalDragAmount = Offset(
-                                                        x = change.position.x - currentMoveStart.x,
-                                                        y = change.position.y - currentMoveStart.y
-                                                    )
                                                     selectedStrokes.forEach { stroke ->
-                                                        stroke.lines.forEach { line ->
-                                                            line.startOffset = line.startOffset.plus(totalDragAmount)
-                                                            line.endOffset = line.endOffset.plus(totalDragAmount)
+                                                        val canMove = stroke.lines.all { line ->
+                                                            isLineWithinCanvasBounds(line, dragAmount, canvasSize)
+                                                        }
+                                                        if (canMove) {
+                                                            stroke.lines.forEach { line ->
+                                                                line.startOffset += dragAmount
+                                                                line.endOffset += dragAmount
+                                                            }
                                                         }
                                                     }
-                                                    // Update moveStart with the current position
                                                     moveStart = change.position
                                                 }
                                             } else {
@@ -331,6 +331,7 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                                     selectedStrokes.add(stroke)  // Add stroke to selectedStrokes if it's within the selection box
                                                 }
                                             }
+
                                             // Reset the selection box
                                             selectionStart = null
                                             selectionEnd = null
@@ -363,16 +364,14 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
             )
         }
 
-        strokes.forEach {
-            it.lines.forEach {line ->
-                drawLine(
-                    color = line.color,
-                    start = line.startOffset,
-                    end = line.endOffset,
-                    strokeWidth = line.strokeWidth.toPx(),
-                    cap = StrokeCap.Round
-                )
-            }
+        lines.forEach {line ->
+            drawLine(
+                color = line.color,
+                start = line.startOffset,
+                end = line.endOffset,
+                strokeWidth = line.strokeWidth.toPx(),
+                cap = StrokeCap.Round
+            )
         }
 
         if (isSelecting) {
@@ -522,4 +521,12 @@ suspend fun updateStrokesInDatabase(movedStrokes: List<Stroke>) {
         val updatedStroke = toSerializable(stroke)
         apiClient.postStroke(updatedStroke)
     }
+}
+fun isLineWithinCanvasBounds(line: Line, dragAmount: Offset, canvasSize: Size): Boolean {
+    val newStart = line.startOffset + dragAmount
+    val newEnd = line.endOffset + dragAmount
+    return newStart.x >= 0f && newStart.x <= canvasSize.width &&
+            newStart.y >= 0f && newStart.y <= canvasSize.height &&
+            newEnd.x >= 0f && newEnd.x <= canvasSize.width &&
+            newEnd.y >= 0f && newEnd.y <= canvasSize.height
 }
