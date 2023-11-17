@@ -1,8 +1,10 @@
 package com.theappengers.routes
 
 import SerializableStroke
+import com.theappengers.schemas.RoomsToUsersTable
 import com.theappengers.schemas.StrokesTable
 import com.theappengers.schemas.StrokesTable.serializedStroke
+import com.theappengers.schemas.fetchUserRooms
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -62,4 +64,21 @@ fun Routing.strokeRoutes() {
             }
         }
     //}
+}
+
+fun Routing.roomRoutes() {
+//    authenticate("jwt") {
+        route("/rooms") {
+            get("/{userId}") {
+                val userId = call.parameters["userId"]?: null
+                if (userId != null) {
+                    val userIdUUID = UUID.fromString(userId)
+                    val rooms = RoomsToUsersTable.fetchUserRooms(userIdUUID)
+                    call.respond(HttpStatusCode.OK, rooms)
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid or missing userId parameter")
+                }
+            }
+        }
+//    }
 }

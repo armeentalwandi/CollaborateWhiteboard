@@ -100,5 +100,11 @@ class ApiClient {
         }
     }
 
+    // Function to get all rooms for a specific user
+    suspend fun getUserRooms(userId: UUID): List<Room> {
+        val url = "$baseUrl/rooms/$userId"
+        val response = client.get(url)
+        return Json.decodeFromString(response.body())
+    }
 
 }
