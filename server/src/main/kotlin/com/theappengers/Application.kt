@@ -25,7 +25,6 @@ fun Application.module() {
     configureRouting()
     val databaseProvider = DatabaseProvider()
     databaseProvider.init()
-
 }
 
 
