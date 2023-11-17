@@ -320,10 +320,10 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                         if (isMovingStroke) {
                                             CoroutineScope(Dispatchers.IO).launch {
                                                 updateStrokesInDatabase(selectedStrokes)
+                                                isMovingStroke = false
+                                                selectedStrokes.clear()
+                                                moveStart = null
                                             }
-                                            isMovingStroke = false
-                                            selectedStrokes.clear()
-                                            moveStart = null
                                         } else if (selectionStart != null && selectionEnd != null){
                                             selectedStrokes.clear()
                                             strokes.forEach { stroke ->
@@ -363,14 +363,16 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
             )
         }
 
-        lines.forEach {line ->
-            drawLine(
-                color = line.color,
-                start = line.startOffset,
-                end = line.endOffset,
-                strokeWidth = line.strokeWidth.toPx(),
-                cap = StrokeCap.Round
-            )
+        strokes.forEach {
+            it.lines.forEach {line ->
+                drawLine(
+                    color = line.color,
+                    start = line.startOffset,
+                    end = line.endOffset,
+                    strokeWidth = line.strokeWidth.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
         }
 
         if (isSelecting) {
@@ -512,7 +514,6 @@ fun isStrokeInSelectionBox(stroke: Stroke, selectionStart: Offset, selectionEnd:
 }
 
 suspend fun updateStrokesInDatabase(movedStrokes: List<Stroke>) {
-    // Pseudocode for updating the strokes in the database
     for (stroke in movedStrokes) {
         // Remove the old stroke data from the database
         apiClient.deleteStroke(UUID.fromString(stroke.strokeId))
