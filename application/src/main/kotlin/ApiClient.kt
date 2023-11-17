@@ -20,8 +20,6 @@ class ApiClient {
     suspend fun getAllStrokes(roomId: UUID): List<SerializableStroke> {
         val url = "$baseUrl/strokes/all/${roomId}"
         val response = client.get(url)
-        val responseBody = response.bodyAsText()
-        println("Response: $responseBody")
 
         // Decode the outer JSON to get a List<String>
         val jsonStringList: List<String> = Json.decodeFromString(response.body())
@@ -114,5 +112,20 @@ class ApiClient {
             setBody(Json.encodeToString(roomData))
         }
     }
+
+    suspend fun updateStrokes(serializedStrokes: List<SerializableStroke>) {
+        val url = "$baseUrl/strokes/update"
+        val updateStrokesRequest = UpdateStrokesRequest(serializedStrokes)
+
+        try {
+            val response = client.put(url) {
+                setBody(Json.encodeToString(updateStrokesRequest))
+            }
+        } catch (e: Exception) {
+            println(e)
+        }
+
+    }
+
 
 }

@@ -8,8 +8,10 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -18,13 +20,18 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import apiClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import models.*
 
 import java.util.UUID
+import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
+
+import androidx.compose.ui.graphics.drawscope.Stroke as Stroke2
 
 @Composable
 fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, appData: AppData) {
@@ -43,6 +50,14 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
     var showShapeOptionsScreen by remember { mutableStateOf(false) }
     var selectedShapeType by remember { mutableStateOf<ShapeType?>(null) }
 
+    var selectionStart by remember { mutableStateOf<Offset?>(null) }
+    var selectionEnd by remember { mutableStateOf<Offset?>(null) }
+    var isSelecting by remember { mutableStateOf(false) }
+
+    var selectedStrokes = remember { mutableStateListOf<Stroke>() }
+    var moveStart by remember { mutableStateOf<Offset?>(null) }
+
+    var isMovingStroke by remember { mutableStateOf(false) }
 
     // Handling specific scenarios based on the selected mode
     if (selectedMode == "DRAW_SHAPES" && selectedShapeType == null) {
@@ -196,7 +211,15 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                         } else if (selectedShapeType == ShapeType.Rectangle) {
                                             currentStroke = createRectangleStroke(topLeft = offset, bottomRight = offset, colour = colour, strokeSize = strokeSize, appData = appData)
                                         } else if (selectedShapeType == ShapeType.Triangle) {
-                                            currentStroke = createTriangleStroke(vertex1 = offset, dragEnd = Offset(offset.x + 1f, offset.y + 1f), colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, appData = appData)                                        }
+                                            currentStroke = createTriangleStroke(vertex1 = offset, dragEnd = Offset(offset.x + 1f, offset.y + 1f), colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, appData = appData)                             }
+                                    } else if (selectedMode == "SELECT_LINES") {
+                                        if (isMovingStroke) {
+                                            moveStart = offset
+                                        } else {
+                                            selectionStart = offset
+                                            selectionEnd = offset
+                                            isSelecting = true
+                                        }
                                     }
                                 },
 
@@ -257,7 +280,28 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                                 currentStroke = createTriangleStroke(vertex1 = currentStroke!!.startOffset, dragEnd = endPosition, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize,appData = appData)
                                             }
                                         } else if (selectedMode == "SELECT_LINES") {
-                                            // SELECT ANYTHING WITHIN THE BOUNDS OF THE SELECTION
+                                            if (isMovingStroke) {
+                                                val currentMoveStart = moveStart
+                                                if (currentMoveStart != null) {
+                                                    selectedStrokes.forEach { stroke ->
+                                                        val canMove = stroke.lines.all { line ->
+                                                            isLineWithinCanvasBounds(line, dragAmount, canvasSize)
+                                                        }
+                                                        if (canMove) {
+                                                            stroke.lines.forEach { line ->
+                                                                line.startOffset += dragAmount
+                                                                line.endOffset += dragAmount
+                                                            }
+                                                            stroke.startOffset += dragAmount
+                                                            stroke.endOffset += dragAmount
+                                                        }
+                                                    }
+                                                    moveStart = change.position
+                                                }
+                                            } else {
+                                                // Handle selection box update
+                                                selectionEnd = change.position
+                                            }
                                         }
                                     }
                                 },
@@ -274,6 +318,28 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                         undoStack.add(Action.AddStroke(currentStroke!!))
                                         redoStack.clear()  // Clear redo stack when a new action is done
                                         selectedShapeType = null
+                                    } else if (selectedMode == "SELECT_LINES") {
+                                        if (isMovingStroke) {
+                                            CoroutineScope(Dispatchers.IO).launch {
+                                                updateStrokesInDatabase(selectedStrokes)
+                                                isMovingStroke = false
+                                                selectedStrokes.clear()
+                                                moveStart = null
+                                            }
+                                        } else if (selectionStart != null && selectionEnd != null){
+                                            selectedStrokes.clear()
+                                            strokes.forEach { stroke ->
+                                                if (isStrokeInSelectionBox(stroke, selectionStart!!, selectionEnd!!)) {
+                                                    selectedStrokes.add(stroke)  // Add stroke to selectedStrokes if it's within the selection box
+                                                }
+                                            }
+
+                                            // Reset the selection box
+                                            selectionStart = null
+                                            selectionEnd = null
+                                            isSelecting = false
+                                            isMovingStroke = selectedStrokes.isNotEmpty()
+                                        }
                                     }
 
                                     // I WANT TO POST STROKE HERE
@@ -284,9 +350,7 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                             }
                                         }
                                     }
-
                                     currentStroke = null
-
                                 }
                             )
         },
@@ -310,6 +374,49 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                 strokeWidth = line.strokeWidth.toPx(),
                 cap = StrokeCap.Round
             )
+        }
+
+        if (isSelecting) {
+            selectionStart?.let { start ->
+                selectionEnd?.let { end ->
+                    if (selectionStart != null && selectionEnd != null) {
+                        // Calculate the top-left corner of the selection box
+                        val topLeft = Offset(
+                            x = minOf(selectionStart!!.x, selectionEnd!!.x),
+                            y = minOf(selectionStart!!.y, selectionEnd!!.y)
+                        )
+
+                        // Calculate the size of the selection box, ensuring width and height are positive
+                        val size = Size(
+                            width = abs(selectionEnd!!.x - selectionStart!!.x),
+                            height = abs(selectionEnd!!.y - selectionStart!!.y)
+                        )
+
+                        val dashEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                        val strokeStyle = Stroke2(width = 2f, pathEffect = dashEffect)
+
+                        // Draw the selection box with the calculated top-left corner and size
+                        drawRect(
+                            color = Color.Black,
+                            topLeft = topLeft,
+                            size = size,
+                            style = strokeStyle
+                        )
+                    }
+                }
+            }
+        } else if (isMovingStroke) {
+            selectedStrokes.forEach { stroke ->
+                stroke.lines.forEach { line ->
+                    drawLine(
+                        color = Color.Yellow, // Highlight color
+                        start = line.startOffset,
+                        end = line.endOffset,
+                        strokeWidth = line.strokeWidth.toPx() + 4.dp.toPx(), // Make the highlight line slightly thicker
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
         }
     }
 
@@ -390,4 +497,32 @@ private fun distanceBetweenTwoPoints(offset1: Offset, offset2: Offset): Float {
 
 private fun isWithinCanvasBounds(offset: Offset, canvasSize: Size): Boolean {
     return offset.x >= 0f && offset.x <= canvasSize.width && offset.y >= 0f && offset.y <= canvasSize.height
+}
+
+fun isStrokeInSelectionBox(stroke: Stroke, selectionStart: Offset, selectionEnd: Offset): Boolean {
+    val left = minOf(selectionStart.x, selectionEnd.x)
+    val top = minOf(selectionStart.y, selectionEnd.y)
+    val right = maxOf(selectionStart.x, selectionEnd.x)
+    val bottom = maxOf(selectionStart.y, selectionEnd.y)
+
+    // Check if any of the stroke's points are within the selection box
+    return stroke.lines.any { line ->
+        line.startOffset.x in left..right &&
+                line.startOffset.y in top..bottom ||
+                line.endOffset.x in left..right &&
+                line.endOffset.y in top..bottom
+    }
+}
+
+suspend fun updateStrokesInDatabase(movedStrokes: List<Stroke>) {
+    val serializedStrokes = movedStrokes.map { stroke -> toSerializable(stroke) }
+    apiClient.updateStrokes(serializedStrokes)
+}
+fun isLineWithinCanvasBounds(line: Line, dragAmount: Offset, canvasSize: Size): Boolean {
+    val newStart = line.startOffset + dragAmount
+    val newEnd = line.endOffset + dragAmount
+    return newStart.x >= 0f && newStart.x <= canvasSize.width &&
+            newStart.y >= 0f && newStart.y <= canvasSize.height &&
+            newEnd.x >= 0f && newEnd.x <= canvasSize.width &&
+            newEnd.y >= 0f && newEnd.y <= canvasSize.height
 }

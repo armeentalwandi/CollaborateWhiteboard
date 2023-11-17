@@ -8,8 +8,8 @@ import java.util.UUID
 
 data class Line(
     val id: Int = 0,
-    val startOffset: Offset,
-    val endOffset: Offset,
+    var startOffset: Offset,
+    var endOffset: Offset,
     val color: Color = Color.Black,
     val strokeWidth: Dp = 1.dp
 )
