@@ -1,19 +1,21 @@
 package com.theappengers.routes
 
 import SerializableStroke
+import UpdateStrokesRequest
 import com.theappengers.schemas.StrokesTable
 import com.theappengers.schemas.StrokesTable.serializedStroke
+import com.theappengers.schemas.UpdateStrokeRequest
+import com.theappengers.schemas.updateStrokeRow
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -58,6 +60,20 @@ fun Routing.strokeRoutes() {
                     call.respond(HttpStatusCode.OK, "Stroke deleted successfully")
                 } else {
                     call.respond(HttpStatusCode.BadRequest, "Invalid or missing strokeId parameter")
+                }
+            }
+
+            put ("/update"){
+                val text = call.receiveText()
+                val deserialized = Json.decodeFromString<UpdateStrokesRequest>(text)
+
+                println(deserialized.serializedStrokes)
+
+                transaction {
+                    deserialized.serializedStrokes.forEach { stroke ->
+                        val strokeString = Json.encodeToString(stroke)
+                        StrokesTable.updateStrokeRow(UpdateStrokeRequest(UUID.fromString(stroke.strokeId), strokeString))
+                    }
                 }
             }
         }
