@@ -8,7 +8,15 @@ import androidx.compose.ui.unit.dp
 import java.util.*
 import kotlin.math.*
 
-fun createCircleStroke(center: Offset, initialRadius: Float, colour: Color, strokeSize: Float, canvasSize: Size, segments: Int = 360, user: User): Stroke {
+fun createCircleStroke(
+    center: Offset,
+    initialRadius: Float,
+    colour: Color,
+    strokeSize: Float,
+    canvasSize: Size,
+    segments: Int = 360,
+    appData: AppData
+): Stroke {
     // Calculate the maximum radius that fits within the canvas from the center point
     val maxXRadius = minOf(center.x, canvasSize.width - center.x)
     val maxYRadius = minOf(center.y, canvasSize.height - center.y)
@@ -46,13 +54,20 @@ fun createCircleStroke(center: Offset, initialRadius: Float, colour: Color, stro
         color = colour,
         startOffset = lines.first().startOffset,
         endOffset = lines.last().endOffset,
-        userId = user.userId,
+        userId = appData.user!!.userId,
         strokeId = UUID.randomUUID().toString(),
+        roomId = appData.currRoom!!.roomId,
         lines = lines,
         center = center
     )
 }
-fun createRectangleStroke(topLeft: Offset, bottomRight: Offset, colour: Color, strokeSize: Float, user: User): Stroke {
+fun createRectangleStroke(
+    topLeft: Offset,
+    bottomRight: Offset,
+    colour: Color,
+    strokeSize: Float,
+    appData: AppData
+): Stroke {
     val lines = mutableListOf<Line>()
 
     // Define the corners of the rectangle
@@ -74,14 +89,22 @@ fun createRectangleStroke(topLeft: Offset, bottomRight: Offset, colour: Color, s
     return Stroke(
         startOffset = topLeft,
         endOffset = bottomRight,
-        userId = user.userId,
+        userId = appData.user!!.userId,
         strokeId = UUID.randomUUID().toString(),
+        roomId = appData.currRoom!!.roomId,
         color = colour,
         lines = lines
     )
 }
 
-fun createTriangleStroke(vertex1: Offset, dragEnd: Offset, colour: Color, strokeSize: Float, canvasSize: Size, user: User): Stroke {
+fun createTriangleStroke(
+    vertex1: Offset,
+    dragEnd: Offset,
+    colour: Color,
+    strokeSize: Float,
+    canvasSize: Size,
+    appData: AppData
+): Stroke {
     val dragDirection = dragEnd - vertex1
 
     // Calculate the height of the triangle
@@ -120,8 +143,9 @@ fun createTriangleStroke(vertex1: Offset, dragEnd: Offset, colour: Color, stroke
     return Stroke(
         startOffset = vertex1,
         endOffset = baseVertex2,
-        userId = user.userId,
+        userId = appData.user!!.userId,
         strokeId = UUID.randomUUID().toString(),
+        roomId = appData.currRoom!!.roomId,
         color = colour,
         lines = lines
     )

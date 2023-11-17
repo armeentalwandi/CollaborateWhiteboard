@@ -2,6 +2,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.*
@@ -16,17 +17,16 @@ class ApiClient {
     private val client = HttpClient()
 
     // Function to get all strokes from the server
-    suspend fun getAllStrokes(): List<SerializableStroke> {
-        val url = "$baseUrl/strokes/all"
+    suspend fun getAllStrokes(roomId: UUID): List<SerializableStroke> {
+        val url = "$baseUrl/strokes/all/${roomId}"
         val response = client.get(url)
+        val responseBody = response.bodyAsText()
+        println("Response: $responseBody")
 
-        // Step 1: Decode the outer JSON to get a List<String>
+        // Decode the outer JSON to get a List<String>
         val jsonStringList: List<String> = Json.decodeFromString(response.body())
 
         // Map over the list and decode each string to get SerializableStroke
-        val result = jsonStringList.map { Json.decodeFromString<SerializableStroke>(it) }
-
-        // Step 2: Map over the list and decode each string to get SerializableStroke
         return jsonStringList.map { Json.decodeFromString<SerializableStroke>(it) }
     }
 
@@ -58,7 +58,6 @@ class ApiClient {
     }
 
 
-    // Replace with your actual server API endpoint
     // Function to send a login request to the server
     suspend fun loginRequest(email: String, password: String): Pair<String, User?> {
         val url = "$baseUrl/auth/login"
@@ -101,10 +100,19 @@ class ApiClient {
     }
 
     // Function to get all rooms for a specific user
-    suspend fun getUserRooms(userId: UUID): List<Room> {
+    suspend fun getUserRooms(userId: String): List<Room> {
         val url = "$baseUrl/rooms/$userId"
         val response = client.get(url)
         return Json.decodeFromString(response.body())
+    }
+
+    suspend fun createRoom(roomName: String, roomCode: String, createdBy: UUID): HttpResponse {
+        val url = "$baseUrl/rooms/create"
+        val roomData = CreateRoomData(roomName, roomCode, createdBy.toString())
+        return client.post(url) {
+            contentType(ContentType.Application.Json)
+            setBody(Json.encodeToString(roomData))
+        }
     }
 
 }

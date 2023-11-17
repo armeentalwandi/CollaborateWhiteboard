@@ -1,5 +1,7 @@
 package com.theappengers.schemas
 
+import Room
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.insert
@@ -9,16 +11,11 @@ import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.Serial
 import java.util.UUID
 //import org.jetbrains.exposed.sql.javatime.datetime
 
-data class Room(
-    var roomId: UUID,
-    var roomName: String,
-    var roomCode: String,
-    var createdBy: UUID,
-//    var createdAt: LocalDateTime
-)
+
 object RoomsTable : UUIDTable("Rooms") {
     val roomName = varchar("room_name", 255)
     val roomCode = varchar("room_code", 10).uniqueIndex()  // Assuming codes are 10 characters long and unique
@@ -40,10 +37,10 @@ fun RoomsTable.createRoom(roomName: String, roomCode: String, createdBy: UUID): 
     }
 
     return if (roomRow != null) Room(
-        roomId = roomRow!![RoomsTable.id].value,
+        roomId = roomRow!![RoomsTable.id].value.toString(),
         roomName = roomRow!![RoomsTable.roomName],
         roomCode = roomRow!![RoomsTable.roomCode],
-        createdBy = roomRow!![RoomsTable.createdBy].value,
+        createdBy = roomRow!![RoomsTable.createdBy].value.toString(),
 //        createdAt = roomRow!![RoomsTable.createdAt]
     ) else null
 }
@@ -54,10 +51,10 @@ fun RoomsTable.findRoomByCode(roomCode: String): Room? {
         val row = RoomsTable.select{ RoomsTable.roomCode eq roomCode }.singleOrNull()
         if (row != null) {
             room = Room(
-                roomId = row[RoomsTable.id].value,
+                roomId = row[RoomsTable.id].value.toString(),
                 roomName = row[roomName],
                 roomCode = row[RoomsTable.roomCode],
-                createdBy = row[createdBy].value,
+                createdBy = row[createdBy].value.toString(),
 //            createdAt = roomRow!![RoomsTable.createdAt]
             )
         }
@@ -70,10 +67,10 @@ fun RoomsTable.findRoomById(roomId: UUID): Room? {
     transaction {
         val row = RoomsTable.select{ RoomsTable.id eq roomId }.single()
         room = Room(
-            roomId = row[RoomsTable.id].value,
+            roomId = row[RoomsTable.id].value.toString(),
             roomName = row[roomName],
             roomCode = row[roomCode],
-            createdBy = row[createdBy].value,
+            createdBy = row[createdBy].value.toString(),
 //            createdAt = roomRow!![RoomsTable.createdAt]
         )
     }
@@ -91,15 +88,6 @@ fun RoomsTable.updateRoom(roomId: UUID, newName: String, newCode: String): Boole
     }
     return updatedRows > 0 // Returns true if at least one row was updated
 }
-
-
-//fun RoomsTable.deleteRoom(roomId: UUID): Boolean {
-//    var deletedRows = false
-//    transaction {
-//        RoomsTable.deleteWhere { RoomsTable.id eq roomId }
-//    }
-//    return deletedRows > 0 // Returns true if at least one row was deleted
-//}
 
 fun RoomsTable.deleteRoom(roomId: UUID): Boolean {
     var deletedRows = 0

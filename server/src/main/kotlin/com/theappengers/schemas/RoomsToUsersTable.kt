@@ -1,5 +1,6 @@
 package com.theappengers.schemas
 
+import Room
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -36,10 +37,10 @@ fun RoomsToUsersTable.fetchUserRooms(userId: UUID): List<Room> {
         }.forEach { resultRow ->
             rooms.add(
                 Room(
-                    roomId = resultRow[RoomsTable.id].value,
+                    roomId = resultRow[RoomsTable.id].value.toString(),
                     roomName = resultRow[RoomsTable.roomName],
                     roomCode = resultRow[RoomsTable.roomCode],
-                    createdBy = resultRow[RoomsTable.createdBy].value,
+                    createdBy = resultRow[RoomsTable.createdBy].value.toString(),
                 )
             )
         }
