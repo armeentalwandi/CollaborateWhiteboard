@@ -13,7 +13,7 @@ import java.util.UUID
 data class User(var userId: UUID, var firstName: String, var lastName: String, var authLevel: String, var email: String, var hashedPassword: String)
 
 object UsersTable : UUIDTable("Users") {
-    val email = varchar("email", 255).uniqueIndex()
+    val email = varchar("email", 255)
     val firstName = varchar("first_name", 255)
     val lastName = varchar("last_name", 255)
     val hashedPassword = varchar("hashed_password", 255)

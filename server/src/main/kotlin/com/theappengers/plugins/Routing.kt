@@ -10,5 +10,6 @@ fun Application.configureRouting() {
     routing {
         strokeRoutes()
         authRoutes()
+        roomRoutes()
     }
 }

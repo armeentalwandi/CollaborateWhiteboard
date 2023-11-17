@@ -116,8 +116,9 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
                             // Perform authentication request and get a token
                             val token = apiClient.registerRequest(email.trim(), password.trim(), firstName.trim(), lastName.trim(), role.toString()
                                 .lowercase(Locale.getDefault())
-                                .trim() )
+                                .trim())
                             // Check if authentication was successful
+                            println(token)
                             if (token != "Invalid Credentials"){
                                 onRegistrationSuccessful()
                             }

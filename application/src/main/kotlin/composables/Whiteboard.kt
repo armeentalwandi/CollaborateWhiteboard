@@ -69,7 +69,7 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
         launch {
             strokes.clear()
             lines.clear()
-            apiClient.getAllStrokes().forEach {
+            apiClient.getAllStrokes(UUID.fromString(appData.currRoom!!.roomId)).forEach {
                 if (it.userId == appData.user?.userId) {
                     val stroke = fromSerializable(it)
                     strokes.add(stroke)
@@ -204,14 +204,14 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                     // Logic for handling drag start based on the selected mode
                                     initialDragPosition = offset
                                     if (selectedMode == "DRAW_LINES") {
-                                        currentStroke = Stroke(offset, userId = appData.user!!.userId, strokeId = UUID.randomUUID().toString(), lines = mutableListOf())
+                                        currentStroke = Stroke(offset, userId = appData.user!!.userId, strokeId = UUID.randomUUID().toString(), roomId = appData.currRoom!!.roomId, lines = mutableListOf())
                                     } else if (selectedMode == "DRAW_SHAPES") {
                                         if (selectedShapeType == ShapeType.Circle) {
-                                            currentStroke = createCircleStroke(center = offset, initialRadius=0f, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, user=appData.user!!)
+                                            currentStroke = createCircleStroke(center = offset, initialRadius=0f, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, appData = appData)
                                         } else if (selectedShapeType == ShapeType.Rectangle) {
-                                            currentStroke = createRectangleStroke(topLeft = offset, bottomRight = offset, colour = colour, strokeSize = strokeSize, user=appData.user!!)
+                                            currentStroke = createRectangleStroke(topLeft = offset, bottomRight = offset, colour = colour, strokeSize = strokeSize, appData = appData)
                                         } else if (selectedShapeType == ShapeType.Triangle) {
-                                            currentStroke = createTriangleStroke(vertex1 = offset, dragEnd = Offset(offset.x + 1f, offset.y + 1f), colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, user=appData.user!!)                                        }
+                                            currentStroke = createTriangleStroke(vertex1 = offset, dragEnd = Offset(offset.x + 1f, offset.y + 1f), colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, appData = appData)                             }
                                     } else if (selectedMode == "SELECT_LINES") {
                                         if (isMovingStroke) {
                                             moveStart = offset
@@ -273,11 +273,11 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                         } else if (selectedMode == "DRAW_SHAPES") {
                                             if (selectedShapeType == ShapeType.Circle) {
                                                 val radius = distanceBetweenTwoPoints(currentStroke!!.center!!, endPosition)
-                                                currentStroke = createCircleStroke(currentStroke!!.center!!, radius, colour, strokeSize, canvasSize, user=appData.user!!)
+                                                currentStroke = createCircleStroke(currentStroke!!.center!!, radius, colour, strokeSize, canvasSize, appData = appData)
                                             } else if (selectedShapeType == ShapeType.Rectangle) {
-                                                currentStroke = createRectangleStroke(topLeft = currentStroke!!.startOffset, bottomRight = endPosition, colour = colour, strokeSize = strokeSize, user=appData.user!!)
+                                                currentStroke = createRectangleStroke(topLeft = currentStroke!!.startOffset, bottomRight = endPosition, colour = colour, strokeSize = strokeSize, appData = appData)
                                             } else if (selectedShapeType == ShapeType.Triangle) {
-                                                currentStroke = createTriangleStroke(vertex1 = currentStroke!!.startOffset, dragEnd = endPosition, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize,user=appData.user!!)
+                                                currentStroke = createTriangleStroke(vertex1 = currentStroke!!.startOffset, dragEnd = endPosition, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize,appData = appData)
                                             }
                                         } else if (selectedMode == "SELECT_LINES") {
                                             if (isMovingStroke) {
