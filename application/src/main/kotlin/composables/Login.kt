@@ -6,6 +6,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -13,6 +17,7 @@ import apiClient
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import models.AppData
+import androidx.compose.ui.input.key.*
 
 
 // Composable function for the login page
@@ -21,6 +26,23 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
     // State variables for email and password
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    fun performLogin() {
+        coroutineScope.launch {
+            val response = apiClient.loginRequest(email.trim(), password.trim())
+            if (response.first != "Invalid Credentials"){
+                data.user = response.second
+                onLoginSuccessful()
+            } else {
+                // Handle the error case, such as showing an error message
+            }
+            email = ""
+            password = ""
+        }
+    }
+
 
     // Column to layout components vertically
     Column(
@@ -36,7 +58,6 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
             style = MaterialTheme.typography.h4,
             color = Color.Blue
         )
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // Email input field
@@ -44,7 +65,14 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().onPreviewKeyEvent { keyEvent ->
+                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+                    performLogin()
+                    true // Indicate that the event has been consumed
+                } else {
+                    false
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -52,7 +80,8 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
         // Password input field (custom composable)
         passwordField(
             password = password,
-            onPasswordChange = { password = it }
+            onPasswordChange = { password = it },
+            onEnterPress = { performLogin() }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -95,18 +124,23 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
                             password = ""
                         }
                     }
-
                 }
             ) {
                 Text(text = "Login")
             }
         }
     }
+//
+//    passwordField(
+//        password = password,
+//        onPasswordChange = { password = it },
+//        onEnterPress = { performLogin() } // Add this parameter to the passwordField composable
+//    )
 }
 
 // Composable function for the PasswordField
 @Composable
-fun passwordField(password: String, onPasswordChange: (String) -> Unit) {
+fun passwordField(password: String, onPasswordChange: (String) -> Unit, onEnterPress: () -> Unit) {
     // State variable to toggle password visibility
     var isPasswordVisible by remember { mutableStateOf(false) }
 
@@ -116,7 +150,14 @@ fun passwordField(password: String, onPasswordChange: (String) -> Unit) {
             value = password,
             onValueChange = onPasswordChange,
             label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().onPreviewKeyEvent { keyEvent ->
+                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+                    onEnterPress()
+                    true // Indicate that the event has been consumed
+                } else {
+                    false
+                }
+            },
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation()
         )
 
