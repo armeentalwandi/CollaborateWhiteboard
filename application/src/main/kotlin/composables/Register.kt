@@ -28,6 +28,30 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
     var password by remember { mutableStateOf("") }
     val role by remember { mutableStateOf(Role.Student) }
 
+    val coroutineScope = rememberCoroutineScope()
+
+    fun performRegistration() {
+        coroutineScope.launch {
+            // Perform registration request and handle the response
+            val token = apiClient.registerRequest(
+                email.trim(),
+                password.trim(),
+                firstName.trim(),
+                lastName.trim(),
+                role.toString().lowercase(Locale.getDefault()).trim()
+            )
+            // Check if registration was successful
+            println(token)
+            if (token != "Invalid Credentials") {
+                onRegistrationSuccessful()
+            }
+            email = ""
+            password = ""
+            // Reset other fields if needed
+        }
+    }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -77,7 +101,9 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
         // Password input field (custom composable)
         passwordField(
             password = password,
-            onPasswordChange = { password = it }
+            onPasswordChange = { password = it },
+            onEnterPress = { performRegistration() }
+
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -108,28 +134,17 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
             // Register Button
             Button(
                 onClick = {
-                    // Handle registration logic here
-
-                    // Use coroutineScope to make an authentication request
-                    runBlocking {
-                        launch {
-                            // Perform authentication request and get a token
-                            val token = apiClient.registerRequest(email.trim(), password.trim(), firstName.trim(), lastName.trim(), role.toString()
-                                .lowercase(Locale.getDefault())
-                                .trim())
-                            // Check if authentication was successful
-                            println(token)
-                            if (token != "Invalid Credentials"){
-                                onRegistrationSuccessful()
-                            }
-                            email = ""
-                            password = ""
-                        }
-                    }
+                    performRegistration()
                 }
             ) {
                 Text(text = "Register")
             }
+        }
+    }
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            // Waiting for an Enter key press event...
+            // You can implement a channel to listen for the key press if necessary
         }
     }
 }
