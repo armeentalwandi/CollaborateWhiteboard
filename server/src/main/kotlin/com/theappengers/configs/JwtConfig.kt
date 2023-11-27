@@ -7,7 +7,7 @@ import io.github.cdimascio.dotenv.Dotenv
 import java.util.*
 
 object JwtConfig {
-    private var SECRET = Dotenv.configure().directory("server/").load()["JWT_SECRET"]
+    private var SECRET = "74f6b4e8f89576c09f26f38d86ca1836f92158d836262df7db5bfd444e8e7243"
     private const val ISSUER = "theappengers.io"
     private const val VALIDITY_IN_MS = 36_000_00 * 10 // 10 hours
     private val ALGORITHM = Algorithm.HMAC512(SECRET)

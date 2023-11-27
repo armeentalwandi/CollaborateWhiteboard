@@ -37,7 +37,7 @@ fun RoomsTable.createRoom(roomName: String, roomCode: String, createdBy: UUID): 
     }
 
     return if (roomRow != null) Room(
-        roomId = roomRow!![RoomsTable.id].value.toString(),
+        roomId = roomRow!![id].value.toString(),
         roomName = roomRow!![RoomsTable.roomName],
         roomCode = roomRow!![RoomsTable.roomCode],
         createdBy = roomRow!![RoomsTable.createdBy].value.toString(),
