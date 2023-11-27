@@ -34,12 +34,6 @@ class DatabaseProvider() {
             dbPassword = "admin"
         }
 
-        println(dbUrl)
-        println(driver)
-        println(dbUser)
-        println(dbPassword)
-
-
         Database.connect(
             url = dbUrl,
             user = dbUser,
