@@ -113,6 +113,12 @@ class ApiClient {
         }
     }
 
+    suspend fun findRoomByCode(roomCode: String): Room {
+        val url = "$baseUrl/rooms/$roomCode"
+        val response = client.get(url)
+        return Json.decodeFromString(response.body())
+    }
+
     suspend fun updateStrokes(serializedStrokes: List<SerializableStroke>) {
         val url = "$baseUrl/strokes/update"
         val updateStrokesRequest = UpdateStrokesRequest(serializedStrokes)
