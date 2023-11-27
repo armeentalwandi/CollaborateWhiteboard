@@ -22,7 +22,7 @@ enum class Screen {
 fun app() {
 
     var currentScreen by remember { mutableStateOf(Screen.Welcome) }
-    var appData by remember { mutableStateOf(AppData(null, null)) }
+    val appData by remember { mutableStateOf(AppData(null, null)) }
 
     // Compose UI based on the current screen
     when (currentScreen) {
