@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import models.AppData
 import androidx.compose.ui.input.key.*
+import composables.*
 
 
 // Composable function for the login page
@@ -27,7 +28,11 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
     val coroutineScope = rememberCoroutineScope()
+    ErrorDialog(showDialog = showErrorDialog, onDismiss = { showErrorDialog = false }, errorMessage = errorMessage)
 
     fun performLogin() {
         coroutineScope.launch {
@@ -36,7 +41,10 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
                 data.user = response.second
                 onLoginSuccessful()
             } else {
-                // Handle the error case, such as showing an error message
+                errorMessage = "Invalid credentials. Please try again."
+                showErrorDialog = true // Show the error dialog
+                //ErrorDialog(showDialog = showErrorDialog, onDismiss = { showErrorDialog = false }, errorMessage = errorMessage)
+
             }
             email = ""
             password = ""
@@ -108,34 +116,13 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
             // Login Button
             Button(
                 onClick = {
-                    // Handle login logic here
-                    // Use coroutineScope to make an authentication request
-                    runBlocking {
-                        launch {
-                            // Perform authentication request and get a token
-                            val response = apiClient.loginRequest(email.trim(), password.trim())
-
-                            // Check if authentication was successful
-                            if (response.first != "Invalid Credentials"){
-                                data.user = response.second
-                                onLoginSuccessful()
-                            }
-                            email = ""
-                            password = ""
-                        }
-                    }
+                    performLogin()
                 }
             ) {
                 Text(text = "Login")
             }
         }
     }
-//
-//    passwordField(
-//        password = password,
-//        onPasswordChange = { password = it },
-//        onEnterPress = { performLogin() } // Add this parameter to the passwordField composable
-//    )
 }
 
 // Composable function for the PasswordField
@@ -178,6 +165,8 @@ fun passwordField(password: String, onPasswordChange: (String) -> Unit, onEnterP
         }
 
     }
+
 }
+
 
 
