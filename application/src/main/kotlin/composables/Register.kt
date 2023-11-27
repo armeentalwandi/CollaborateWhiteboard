@@ -46,7 +46,7 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
             )
             // Check if registration was successful
             println(token)
-            if (token != "Invalid Credentials") {
+            if (token != "User Exists Already") {
                 onRegistrationSuccessful()
             } else {
                 errorMessage = "Email exists already. Please sign in."
