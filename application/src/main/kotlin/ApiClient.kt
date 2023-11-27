@@ -28,7 +28,6 @@ class ApiClient {
         return jsonStringList.map { Json.decodeFromString<SerializableStroke>(it) }
     }
 
-
     // Function to get strokes for a specific user
     suspend fun getStrokes(userId: UUID): List<SerializableStroke> {
         val url = "$baseUrl/strokes"

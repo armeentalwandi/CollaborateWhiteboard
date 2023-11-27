@@ -27,8 +27,12 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
     var lastName by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val role by remember { mutableStateOf(Role.Student) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
+
+    ErrorDialog(showDialog = showErrorDialog, onDismiss = { showErrorDialog = false }, errorMessage = errorMessage)
 
     fun performRegistration() {
         coroutineScope.launch {
@@ -44,6 +48,10 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
             println(token)
             if (token != "Invalid Credentials") {
                 onRegistrationSuccessful()
+            } else {
+                errorMessage = "Email exists already. Please sign in."
+                showErrorDialog = true
+
             }
             email = ""
             password = ""
