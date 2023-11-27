@@ -1,0 +1,9 @@
+runtime: java17
+entrypoint: 'java -jar server-all.jar'
+
+env_variables:
+  env: 'remote'
+  JWT_SECRET: '74f6b4e8f89576c09f26f38d86ca1836f92158d836262df7db5bfd444e8e7243'
+  CLOUDSQL_URL: 'jdbc:postgresql://35.223.21.114:5432/postgres'
+  DATABASE_USER: 'admin'
+  DATABASE_PASSWORD: 'admin'

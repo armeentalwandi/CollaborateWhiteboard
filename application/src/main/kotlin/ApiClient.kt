@@ -12,6 +12,7 @@ class ApiClient {
 
     // Base URL for the API
     private val baseUrl = "http://127.0.0.1:8080"
+    // private val baseUrl = "https://gothic-depth-405218.uc.r.appspot.com/"
 
     // HTTP client used for making requests
     private val client = HttpClient()
