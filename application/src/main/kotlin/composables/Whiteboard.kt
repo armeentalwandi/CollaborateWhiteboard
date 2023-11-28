@@ -1,6 +1,7 @@
 package composables
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
@@ -151,14 +153,22 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
 
         // Undo Button
         Button(onClick = { undo() }, enabled = undoStack.isNotEmpty()) {
-            Text("Undo")
+            Image(
+                painter = painterResource("undo.svg"),
+                contentDescription = "Undo",
+                modifier = Modifier.background(Color.Transparent)
+            )
         }
 
         Spacer(modifier = Modifier.width(8.dp))  // Add some space between the buttons
 
         // Redo Button
         Button(onClick = { redo() }, enabled = redoStack.isNotEmpty()) {
-            Text("Redo")
+            Image(
+                painter = painterResource("redo.svg"),
+                contentDescription = "Redo",
+                modifier = Modifier.background(Color.Transparent)
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f)) // Dynamic spacing to push the slider to the left

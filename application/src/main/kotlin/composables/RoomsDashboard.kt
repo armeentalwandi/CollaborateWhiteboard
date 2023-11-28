@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 import models.AppData
 import apiClient
+import helpButton
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -143,5 +144,7 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
         ) {
             Text(text = "Sign Out")
         }
+
+        helpButton()
     }
 }
