@@ -2,8 +2,8 @@ package com.theappengers.routes
 
 import CreateRoomData
 import SerializableStroke
-import com.theappengers.schemas.*
 import UpdateStrokesRequest
+import com.theappengers.schemas.*
 import com.theappengers.schemas.StrokesTable
 import com.theappengers.schemas.StrokesTable.serializedStroke
 import com.theappengers.schemas.StrokesTable.roomId

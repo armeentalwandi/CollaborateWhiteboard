@@ -1,5 +1,6 @@
 package com.theappengers.providers
 
+import com.theappengers.ENVIRONMENT
 import com.theappengers.schemas.RoomsTable
 import com.theappengers.schemas.RoomsToUsersTable
 import com.theappengers.schemas.StrokesTable
@@ -8,33 +9,36 @@ import io.github.cdimascio.dotenv.Dotenv
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+import javax.sound.midi.SysexMessage
 
 class DatabaseProvider() {
 
     fun init(){
 
-        val dotenv = Dotenv.configure().directory("server/").load()
+//        val dotenv = Dotenv.configure().directory("server/").load()
 
-        val env = dotenv["ENV"]
-
-        val dbUser = dotenv["DATABASE_USER"]
-        val dbPassword = dotenv["DATABASE_PASSWORD"]
         var dbUrl = ""
         var driver = ""
+        var dbUser = ""
+        var dbPassword = ""
 
-        if (env == "local") {
-            dbUrl = dotenv["DATABASE_URL"]
+        if (ENVIRONMENT == "local") {
+            dbUrl = "jdbc:sqlite:database.sqlite"
             driver = "org.sqlite.JDBC"
-        } else if (env == "remote") {
-            dbUrl = dotenv["CLOUDSQL_URL"]
-            driver = "org.postgresql.driver"
+            dbUser = "admin"
+            dbPassword = "admin"
+        } else if (ENVIRONMENT == "remote") {
+            dbUrl = "jdbc:postgresql://35.223.21.114:5432/postgres"
+            driver = "org.postgresql.Driver"
+            dbUser = "admin"
+            dbPassword = "admin"
         }
 
         Database.connect(
             url = dbUrl,
             user = dbUser,
             password = dbPassword,
-            driver = "org.sqlite.JDBC"
+            driver = driver
         )
         transaction {
             SchemaUtils.create(StrokesTable)

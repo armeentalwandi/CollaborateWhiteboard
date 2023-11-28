@@ -12,6 +12,7 @@ class ApiClient {
 
     // Base URL for the API
     private val baseUrl = "http://127.0.0.1:8080"
+    // private val baseUrl = "https://gothic-depth-405218.uc.r.appspot.com/"
 
     // HTTP client used for making requests
     private val client = HttpClient()
@@ -27,7 +28,6 @@ class ApiClient {
         // Map over the list and decode each string to get SerializableStroke
         return jsonStringList.map { Json.decodeFromString<SerializableStroke>(it) }
     }
-
 
     // Function to get strokes for a specific user
     suspend fun getStrokes(userId: UUID): List<SerializableStroke> {

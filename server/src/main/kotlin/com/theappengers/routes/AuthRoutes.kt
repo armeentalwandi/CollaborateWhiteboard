@@ -40,7 +40,7 @@ fun Routing.authRoutes() {
             val registerRequest = Json.decodeFromString<RegisterRequest>(text)
 
             if (UsersTable.doesEmailExist(registerRequest.email)) {
-                call.respond(HttpStatusCode.BadRequest, RegisterResponse("Invalid Credentials"))
+                call.respond(HttpStatusCode.BadRequest, RegisterResponse("User Exists Already"))
             }
 
             val hashedPassword = UsersTable.hashPassword(registerRequest.password)

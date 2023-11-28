@@ -13,8 +13,18 @@ import io.ktor.server.netty.*
 import java.util.*
 
 
+val ENVIRONMENT = "local"
+
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "127.0.0.1", module = Application::module)
+
+    var host = "127.0.0.1"
+    if (ENVIRONMENT == "remote") {
+        host = "0.0.0.0"
+    } else if (ENVIRONMENT == "local") {
+        host = "127.0.0.1"
+    }
+
+    embeddedServer(Netty, port = 8080, host = host, module = Application::module)
         .start(wait = true)
 }
 
