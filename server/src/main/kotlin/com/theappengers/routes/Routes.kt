@@ -93,7 +93,7 @@ fun Routing.strokeRoutes() {
 fun Routing.roomRoutes() {
 //    authenticate("jwt") {
         route("/rooms") {
-            get("/{userId}") {
+            get("/user/{userId}") {
                 val userId = call.parameters["userId"]?: null
                 if (userId != null) {
                     val userIdUUID = UUID.fromString(userId)
@@ -104,7 +104,7 @@ fun Routing.roomRoutes() {
                 }
             }
 
-            get("/{roomCode") {
+            get("/room/{roomCode}") {
                 val roomCode = call.parameters["roomCode"]?: null
                 if (roomCode != null) {
                     val room = RoomsTable.findRoomByCode(roomCode)
@@ -115,16 +115,6 @@ fun Routing.roomRoutes() {
                     }
                 } else {
                     call.respond(HttpStatusCode.BadRequest, "Invalid or missing roomCode")
-                }
-            }
-
-            get("/{roomCode}") {
-                val roomCode = call.parameters["roomCode"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid or missing roomCode parameter")
-                val room = RoomsTable.findRoomByCode(roomCode)
-                if (room != null) {
-                    call.respond(HttpStatusCode.OK, room)
-                } else {
-                    call.respond(HttpStatusCode.NotFound, "Room not found")
                 }
             }
 

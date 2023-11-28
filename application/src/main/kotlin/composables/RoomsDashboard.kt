@@ -89,7 +89,6 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                     }
                 }
             }
-
         }) {
             Text("Create New Room")
         }
@@ -109,8 +108,25 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
         // Button to navigate to the whiteboard
         Button(
             onClick = {
-
-                onGoToWhiteboard()
+                if (roomCode.isNotBlank()) {
+                    runBlocking {
+                        launch {
+                            try {
+                                val foundRoom = apiClient.findRoomByCode(roomCode)
+                                if (foundRoom != null) {
+                                    appData.currRoom = foundRoom
+                                    onGoToWhiteboard()
+                                } else {
+                                    // show message pop-up to say that room wasn't found
+                                }
+                            } catch (e: Exception) {
+                                // Handle other exceptions like network errors, bad requests, etc in a pop-up
+                            }
+                        }
+                    }
+                } else {
+                    // show error message pop-up to not leave room code blank
+                }
             },
             modifier = Modifier.padding(8.dp)
         ) {
