@@ -1,12 +1,20 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import composables.loginPage
 import composables.twoColumnLayout
 import composables.registrationPage
 import composables.roomsDashboard
 import models.AppData
+import models.UserPreferences
+import java.awt.Dimension
 
 // Create an instance of the ApiClient class for making API requests
 val apiClient: ApiClient = ApiClient()
@@ -55,13 +63,29 @@ fun app() {
 
 // Main function to start the application
 fun main() = application {
+    UserPreferences.loadPreferences()
+    println(UserPreferences)
+    val windowState = rememberWindowState(width = UserPreferences.windowWidth, height = UserPreferences.windowHeight)
 
     Window(
         title = "Appenger's whiteboard",
-        onCloseRequest = ::exitApplication
+        onCloseRequest = {
+            UserPreferences.windowWidth = windowState.size.width
+            UserPreferences.windowHeight = windowState.size.height
+            UserPreferences.savePreferences()
+            exitApplication()
+        },
+        resizable = true,
+        state = windowState
     ) {
-        // Call the main Composable function to build the UI
         app()
+
+        // Observe the window size changes
+        LaunchedEffect(windowState.size) {
+            UserPreferences.windowWidth = windowState.size.width
+            UserPreferences.windowHeight = windowState.size.height
+        }
+
     }
 }
 
