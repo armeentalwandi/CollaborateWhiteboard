@@ -17,6 +17,7 @@ import composables.*
 import models.AppData
 import models.UserPreferences
 import java.awt.Desktop
+import java.io.File
 import java.net.URI
 
 val ENVIRONMENT = "local"
@@ -70,6 +71,21 @@ fun app() {
 
 // Main function to start the application
 fun main() = application {
+
+    val directoryPath = "${System.getProperty("user.home")}/AppengersWhiteboard" // Replace with your desired directory path
+    val directory = File(directoryPath)
+
+    if (!directory.exists()) {
+        val wasCreated = directory.mkdirs()
+        if (wasCreated) {
+            println("Directory created successfully.")
+        } else {
+            println("Failed to create directory.")
+        }
+    } else {
+        println("Directory already exists.")
+    }
+
     UserPreferences.loadPreferences()
     val windowState = rememberWindowState(width = UserPreferences.windowWidth, height = UserPreferences.windowHeight)
 

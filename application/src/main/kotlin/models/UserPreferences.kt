@@ -17,7 +17,7 @@ object UserPreferences {
     var windowHeight: Dp = 720.dp
     var windowWidth: Dp = 1280.dp
 
-    private val preferencesFile = File("${System.getProperty("user.home")}/appengers_user_preferences.json")
+    private val preferencesFile = File("${System.getProperty("user.home")}/AppengersWhiteboard/appengers_user_preferences.json")
 
     fun loadPreferences() {
         if (preferencesFile.exists()) {
