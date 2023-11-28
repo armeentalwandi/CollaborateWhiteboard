@@ -4,7 +4,7 @@ val ktor_version: String by project
 val nav_version: String by project
 
 plugins {
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "1.9.0"
     id("org.jetbrains.compose") version "1.5.1"
     kotlin("plugin.serialization") version "1.9.0"
 }
@@ -27,6 +27,23 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.0")
+}
+
+
+
+
+sourceSets {
+    test {
+        kotlin.srcDirs("src/test/kotlin")
+    }
+}
+
+tasks.test { useJUnitPlatform()
 }
 
 
