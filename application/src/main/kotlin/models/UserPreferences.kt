@@ -14,8 +14,8 @@ data class PreferencesData(
 )
 
 object UserPreferences {
-    var windowHeight: Dp = 600.dp
-    var windowWidth: Dp = 800.dp
+    var windowHeight: Dp = 720.dp
+    var windowWidth: Dp = 1280.dp
 
     private val preferencesFile = File("${System.getProperty("user.home")}/appengers_user_preferences.json")
 

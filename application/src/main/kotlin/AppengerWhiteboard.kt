@@ -16,6 +16,8 @@ import models.AppData
 import models.UserPreferences
 import java.awt.Dimension
 
+val ENVIRONMENT = "local"
+
 // Create an instance of the ApiClient class for making API requests
 val apiClient: ApiClient = ApiClient()
 
