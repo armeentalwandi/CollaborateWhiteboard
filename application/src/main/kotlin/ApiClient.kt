@@ -99,7 +99,7 @@ class ApiClient {
 
     // Function to get all rooms for a specific user
     suspend fun getUserRooms(userId: String): List<Room> {
-        val url = "$baseUrl/rooms/$userId"
+        val url = "$baseUrl/rooms/user/$userId"
         val response = client.get(url)
         return Json.decodeFromString(response.body())
     }
@@ -114,11 +114,11 @@ class ApiClient {
     }
 
     suspend fun findRoomByCode(roomCode: String): Room? {
-        val url = "$baseUrl/rooms/$roomCode"
+        val url = "$baseUrl/rooms/room/$roomCode"
         val response = client.get(url)
         when (response.status) {
             HttpStatusCode.OK -> {
-                return Json.decodeFromString(response.body())
+                return Json.decodeFromString<Room>(response.body())
             }
             HttpStatusCode.NotFound -> {
                 // Room not found, return null
