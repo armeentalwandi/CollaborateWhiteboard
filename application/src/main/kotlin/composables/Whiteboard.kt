@@ -70,11 +70,11 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
             strokes.clear()
             lines.clear()
             apiClient.getAllStrokes(UUID.fromString(appData.currRoom!!.roomId)).forEach {
-                if (it.userId == appData.user?.userId) {
+//                if (it.userId == appData.user?.userId) {
                     val stroke = fromSerializable(it)
                     strokes.add(stroke)
                     lines.addAll(stroke.lines)
-                }
+//                }
             }
         }
     }

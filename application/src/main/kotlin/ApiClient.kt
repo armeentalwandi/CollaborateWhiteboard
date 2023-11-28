@@ -99,7 +99,7 @@ class ApiClient {
 
     // Function to get all rooms for a specific user
     suspend fun getUserRooms(userId: String): List<Room> {
-        val url = "$baseUrl/rooms/$userId"
+        val url = "$baseUrl/rooms/user/$userId"
         val response = client.get(url)
         return Json.decodeFromString(response.body())
     }
@@ -113,10 +113,32 @@ class ApiClient {
         }
     }
 
+    suspend fun findRoomByCode(roomCode: String): Room? {
+        val url = "$baseUrl/rooms/room/$roomCode"
+        val response = client.get(url)
+        when (response.status) {
+            HttpStatusCode.OK -> {
+                return Json.decodeFromString<Room>(response.body())
+            }
+            HttpStatusCode.NotFound -> {
+                // Room not found, return null
+                return null
+            }
+            HttpStatusCode.BadRequest -> {
+                // Invalid room code, throw an exception
+                throw IllegalArgumentException("Invalid or missing roomCode")
+            }
+            else -> {
+                // Handle other unexpected status codes
+                throw RuntimeException("Unexpected response: ${response.status.description}")
+            }
+        }
+    }
+
+
     suspend fun updateStrokes(serializedStrokes: List<SerializableStroke>) {
         val url = "$baseUrl/strokes/update"
         val updateStrokesRequest = UpdateStrokesRequest(serializedStrokes)
-
         try {
             val response = client.put(url) {
                 setBody(Json.encodeToString(updateStrokesRequest))
@@ -124,7 +146,6 @@ class ApiClient {
         } catch (e: Exception) {
             println(e)
         }
-
     }
 
 
