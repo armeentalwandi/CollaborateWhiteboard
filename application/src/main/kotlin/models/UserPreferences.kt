@@ -23,7 +23,6 @@ object UserPreferences {
         if (preferencesFile.exists()) {
             val jsonString = preferencesFile.readText()
             val data = Json.decodeFromString<PreferencesData>(jsonString)
-            println(data)
             windowHeight = data.windowHeight.dp
             windowWidth = data.windowWidth.dp
         }
@@ -32,7 +31,6 @@ object UserPreferences {
     fun savePreferences() {
         val data = PreferencesData(windowHeight.value, windowWidth.value)
         val jsonString = Json.encodeToString(data)
-        print(jsonString)
         preferencesFile.writeText(jsonString)
     }
 

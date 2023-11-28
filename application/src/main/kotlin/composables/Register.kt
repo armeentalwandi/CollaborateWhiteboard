@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import apiClient
+import helpButton
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.*
@@ -147,6 +148,8 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
             ) {
                 Text(text = "Register")
             }
+
+            helpButton()
         }
     }
     LaunchedEffect(Unit) {

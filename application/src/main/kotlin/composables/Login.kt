@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import models.AppData
 import androidx.compose.ui.input.key.*
 import composables.*
+import helpButton
 
 
 // Composable function for the login page
@@ -122,6 +123,7 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
                 Text(text = "Login")
             }
         }
+        helpButton()
     }
 }
 
