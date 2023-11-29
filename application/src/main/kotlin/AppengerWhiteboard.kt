@@ -24,6 +24,8 @@ val ENVIRONMENT = "local"
 
 // Create an instance of the ApiClient class for making API requests
 val apiClient: ApiClient = ApiClient()
+val directoryPath = "${System.getProperty("user.home")}/AppengersWhiteboard" // Replace with your desired directory path
+
 
 // Enum to represent different screens in the application
 enum class Screen {
@@ -71,10 +73,7 @@ fun app() {
 
 // Main function to start the application
 fun main() = application {
-
-    val directoryPath = "${System.getProperty("user.home")}/AppengersWhiteboard" // Replace with your desired directory path
     val directory = File(directoryPath)
-
     if (!directory.exists()) {
         val wasCreated = directory.mkdirs()
         if (wasCreated) {
