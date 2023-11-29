@@ -21,12 +21,12 @@ data class UpdateStrokeRequest(
 fun StrokesTable.updateStrokeRow(updateRequest: UpdateStrokeRequest) {
     transaction {
         // Find the row with the specified strokeId
-        val row = StrokesTable.select { StrokesTable.strokeId eq updateRequest.strokeId }
+        val row = StrokesTable.select { strokeId eq updateRequest.strokeId }
             .singleOrNull()
 
         if (row != null) {
             // Update the serializedStroke column
-            StrokesTable.update({ StrokesTable.strokeId eq updateRequest.strokeId }) {
+            StrokesTable.update({ strokeId eq updateRequest.strokeId }) {
                 it[serializedStroke] = updateRequest.serializedStroke
             }
         } else {

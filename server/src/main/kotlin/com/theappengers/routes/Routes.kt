@@ -76,9 +76,6 @@ fun Routing.strokeRoutes() {
             put ("/update"){
                 val text = call.receiveText()
                 val deserialized = Json.decodeFromString<UpdateStrokesRequest>(text)
-
-                println(deserialized.serializedStrokes)
-
                 transaction {
                     deserialized.serializedStrokes.forEach { stroke ->
                         val strokeString = Json.encodeToString(stroke)
