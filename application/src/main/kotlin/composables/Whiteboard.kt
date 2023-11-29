@@ -22,10 +22,8 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import apiClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import com.sun.jdi.connect.LaunchingConnector
+import kotlinx.coroutines.*
 import models.*
 
 import java.util.UUID
@@ -41,8 +39,12 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
     // Variable declarations for managing state and storing whiteboard elements
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
     var colour by remember { mutableStateOf(Color(255, 0, 0)) }
+
     val lines = remember { mutableStateListOf<Line>() }
     val strokes = remember { mutableStateListOf<Stroke>() }
+    val coroutineScope = rememberCoroutineScope()
+    val updateIntervalMillis = 2000L // 2 seconds
+
     var currentStroke: Stroke? by remember { mutableStateOf(null) }
     var canvasSize by remember { mutableStateOf(Size(0f, 0f)) }
     var colourPickerDialog: Boolean by remember { mutableStateOf(false) }
@@ -67,16 +69,24 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
     }
 
     // Retrieving strokes from the server on composition for a specific user
-    runBlocking {
-        launch {
-            strokes.clear()
-            lines.clear()
-            apiClient.getAllStrokes(UUID.fromString(appData.currRoom!!.roomId)).forEach {
-//                if (it.userId == appData.user?.userId) {
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            while(isActive){
+                val newStrokes = mutableListOf<Stroke>()
+                val newLines = mutableListOf<Line>()
+                apiClient.getAllStrokes(UUID.fromString(appData.currRoom!!.roomId)).forEach {
                     val stroke = fromSerializable(it)
-                    strokes.add(stroke)
-                    lines.addAll(stroke.lines)
-//                }
+                    newStrokes.add(stroke)
+                    newLines.addAll(stroke.lines)
+                }
+
+                withContext(Dispatchers.Main) {
+                    strokes.clear()
+                    strokes.addAll(newStrokes)
+                    lines.clear()
+                    lines.addAll(newLines)
+                }
+                delay(updateIntervalMillis)
             }
         }
     }
