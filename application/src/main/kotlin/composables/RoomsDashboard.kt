@@ -38,7 +38,7 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
     LaunchedEffect(key1 = appData.user?.userId) {
         val response = apiClient.getUserRooms(appData.user!!.userId)
         rooms.clear()
-        response.let {
+        response?.let {
             rooms.addAll(it)
         }
     }
@@ -63,8 +63,10 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                     modifier = Modifier.padding(vertical = 8.dp)
                 ) {
                     items(rooms) { room ->
-                        appData.currRoom = room
-                        RoomCard(room, onClick = { onGoToWhiteboard() })
+                        RoomCard(room, onClick = {
+                            appData.currRoom = room
+                            onGoToWhiteboard()
+                        })
                     }
                 }
             }
