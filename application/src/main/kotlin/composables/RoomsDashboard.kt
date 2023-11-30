@@ -91,9 +91,29 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                 })
             }
         }
-
+        JoinRoomSection(roomCode, onRoomCodeChanged = { roomCode = it }, onJoinRoom = {  if (roomCode.isNotBlank()) {
+            runBlocking {
+                launch {
+                    try {
+                        val foundRoom = apiClient.findRoomByCode(roomCode)
+                        if (foundRoom != null) {
+                            appData.currRoom = foundRoom
+                            onGoToWhiteboard()
+                        } else {
+                            // show message pop-up to say that room wasn't found
+                        }
+                    } catch (e: Exception) {
+                        // Handle other exceptions like network errors, bad requests, etc in a pop-up
+                    }
+                }
+            }
+        } else {
+            // show error message pop-up to not leave room code blank
+        }
+        })
     }
 }
+
 
 
 
@@ -177,4 +197,30 @@ fun CreateRoomSection(roomName: String, onRoomNameChanged: (String) -> Unit, onC
     }
 }
 
+
+
+@Composable
+fun JoinRoomSection(roomCode: String, onRoomCodeChanged: (String) -> Unit, onJoinRoom: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Join Existing Room", style = MaterialTheme.typography.h4)
+        Spacer(modifier = Modifier.height(32.dp))
+        OutlinedTextField(
+            value = roomCode,
+            onValueChange = onRoomCodeChanged,
+            label = { Text("Room Code") },
+            singleLine = true,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onJoinRoom,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        ) {
+            Text("Join Existing Room")
+        }
+    }
+}
 
