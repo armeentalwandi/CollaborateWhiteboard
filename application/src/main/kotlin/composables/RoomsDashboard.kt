@@ -6,13 +6,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
@@ -34,12 +37,38 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
     var roomName by remember { mutableStateOf("") }
     var roomCode by remember { mutableStateOf("") }
 
+    val removedRoomCodes = remember { mutableSetOf<String>() }
+
+    val coroutineScope = rememberCoroutineScope()
+
+
+    fun hideRoom(room: Room) {
+        coroutineScope.launch {
+            try {
+                val response = apiClient.removeUserFromRoom(room.roomId, appData.user!!.userId)
+                if (response.status == HttpStatusCode.OK) {
+                    println("here")
+                    // Remove the room from the UI
+                    rooms.remove(room)
+                    removedRoomCodes.add(room.roomCode)
+                } else {
+                    println(response.status)
+                    println("here2")
+                    // Handle error - e.g., show a snackbar or dialog
+                }
+            } catch (e: Exception) {
+                // Handle exceptions - e.g., show a snackbar or dialog
+            }
+        }
+    }
+
     // Load rooms once at the beginning
     LaunchedEffect(key1 = appData.user?.userId) {
         val response = apiClient.getUserRooms(appData.user!!.userId)
         rooms.clear()
-        response?.let {
-            rooms.addAll(it)
+        response.let {
+            // Filter out rooms that have been removed locally
+            rooms.addAll(it.filterNot { room -> room.roomCode in removedRoomCodes })
         }
     }
 
@@ -66,7 +95,7 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                         RoomCard(room, onClick = {
                             appData.currRoom = room
                             onGoToWhiteboard()
-                        })
+                        }, onCloseClick = { hideRoom(room)})
                     }
                 }
             }
@@ -93,16 +122,22 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                 })
             }
         }
-        JoinRoomSection(roomCode, onRoomCodeChanged = { roomCode = it }, onJoinRoom = {  if (roomCode.isNotBlank()) {
+        JoinRoomSection(roomCode, onRoomCodeChanged = { roomCode = it },
+            onJoinRoom = {  if (roomCode.isNotBlank()) {
             runBlocking {
                 launch {
                     try {
-                        val foundRoom = apiClient.findRoomByCode(roomCode)
-                        if (foundRoom != null) {
-                            appData.currRoom = foundRoom
-                            onGoToWhiteboard()
+                        if (roomCode in removedRoomCodes) {
+                            removedRoomCodes.remove(roomCode)
                         } else {
-                            // show message pop-up to say that room wasn't found
+                            val foundRoom = apiClient.findRoomByCode(roomCode)
+
+                            if (foundRoom != null) {
+                                appData.currRoom = foundRoom
+                                onGoToWhiteboard()
+                            } else {
+                                // show message pop-up to say that room wasn't found
+                            }
                         }
                     } catch (e: Exception) {
                         // Handle other exceptions like network errors, bad requests, etc in a pop-up
@@ -153,21 +188,40 @@ fun TopBar(userName: String, onSignOut: () -> Unit) {
         }
     }
 }
-
 @Composable
-fun RoomCard(room: Room, onClick: () -> Unit) {
+fun RoomCard(room: Room, onClick: () -> Unit, onCloseClick: (String) -> Unit) {
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .size(width = 180.dp, height = 100.dp) // Increase size as needed
+            .size(width = 180.dp, height = 100.dp)
             .clickable { onClick() },
         elevation = 4.dp
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(room.roomName, style = MaterialTheme.typography.subtitle1)
+        Box {
+            Text(
+                text = room.roomName,
+                style = MaterialTheme.typography.subtitle1,
+                modifier = Modifier.align(Alignment.Center)
+            )
+
+            IconButton(
+                onClick = { onCloseClick(room.roomCode) },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Color.Red.copy(alpha = 0.5f))
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Close",
+                    tint = Color.White
+                )
+            }
         }
     }
 }
+
 fun generateRandomRoomCode(length: Int = 6): String {
     val allowedChars = ('A'..'Z') + ('0'..'9')
     return (1..length)
@@ -225,4 +279,3 @@ fun JoinRoomSection(roomCode: String, onRoomCodeChanged: (String) -> Unit, onJoi
         }
     }
 }
-

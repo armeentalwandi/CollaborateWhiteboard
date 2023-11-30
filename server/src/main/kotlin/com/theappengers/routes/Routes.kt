@@ -111,6 +111,26 @@ fun Routing.roomRoutes() {
                 }
             }
 
+            delete("/room/{roomId}/user/{userId}") {
+                val roomId = call.parameters["roomId"]
+                val userId = call.parameters["userId"]
+
+                if (roomId == null || userId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Missing roomId or userId")
+                    return@delete
+                }
+
+                try {
+                    val roomIdUUID = UUID.fromString(roomId)
+                    val userIdUUID = UUID.fromString(userId)
+                    RoomsToUsersTable.removeUserFromRoom(roomIdUUID, userIdUUID)
+                    call.respond(HttpStatusCode.OK, "User removed from room successfully")
+                } catch (e: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid roomId or userId")
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, e.message ?: "Internal server error")
+                }
+            }
 
             post("/create") {
                 // Extract room details from the request
