@@ -68,11 +68,33 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                     }
                 }
             }
+            Column(
+                modifier = Modifier.weight(1f).padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
 
+                Text("Create New Room", style = MaterialTheme.typography.h4)
+                Spacer(modifier = Modifier.height(27.dp))
+
+
+                CreateRoomSection(roomName, onRoomNameChanged = { roomName = it }, onCreateRoom = {  runBlocking {
+                    launch {
+                        val response = apiClient.createRoom(roomName, generateRandomRoomCode(), UUID.fromString(appData.user!!.userId))
+                        if (response.status == HttpStatusCode.Created) {
+                            val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
+                            appData.currRoom = createdRoom
+                            onGoToWhiteboard()
+                        }
+                    }
+                }
+                })
+            }
         }
+
     }
 }
+
 
 
 @Composable
@@ -124,3 +146,35 @@ fun RoomCard(room: Room, onClick: () -> Unit) {
         }
     }
 }
+fun generateRandomRoomCode(length: Int = 6): String {
+    val allowedChars = ('A'..'Z') + ('0'..'9')
+    return (1..length)
+        .map { allowedChars.random(Random) }
+        .joinToString("")
+}
+
+@Composable
+fun CreateRoomSection(roomName: String, onRoomNameChanged: (String) -> Unit, onCreateRoom: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = roomName,
+            onValueChange = onRoomNameChanged,
+            label = { Text("Room Name") },
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.width(16.dp))
+        Button(onClick = onCreateRoom) {
+            Text("Create New Room")
+
+
+        }
+    }
+}
+
+
