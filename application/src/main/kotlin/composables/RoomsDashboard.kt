@@ -53,7 +53,7 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
     ) {
 
         // Display the welcome message with the user's name
-        Text(text = "Welcome back ${appData.user?.first_name ?: "User"}", fontSize = 24.sp)
+        Text(text = "Welcome back, ${appData.user?.first_name ?: "User"}!", fontSize = 24.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
 

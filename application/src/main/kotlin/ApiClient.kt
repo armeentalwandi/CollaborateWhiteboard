@@ -5,6 +5,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import models.UWCourseData
+import models.UWSubjectData
+import models.UWTermData
 import java.util.*
 
 
@@ -12,6 +15,9 @@ class ApiClient {
 
     // Base URL for the API
     private val baseUrl = if (ENVIRONMENT != "remote") "http://127.0.0.1:8080" else "https://gothic-depth-405218.uc.r.appspot.com/"
+
+    private val uwAPIUrl = "https://openapi.data.uwaterloo.ca/v3"
+    private val uwAPIKey = "FD66FD2E96D24334A7080C1F1A694E98"
 
     // HTTP client used for making requests
     private val client = HttpClient()
@@ -134,7 +140,6 @@ class ApiClient {
         }
     }
 
-
     suspend fun updateStrokes(serializedStrokes: List<SerializableStroke>) {
         val url = "$baseUrl/strokes/update"
         val updateStrokesRequest = UpdateStrokesRequest(serializedStrokes)
@@ -147,5 +152,28 @@ class ApiClient {
         }
     }
 
+    suspend fun getCurrentTermData(): UWTermData {
+        val url = "$uwAPIUrl/terms/current"
+        val response = client.get(url) {
+            header("X-API-KEY", uwAPIKey)
+        }
+        return Json.decodeFromString<UWTermData>(response.body())
+    }
+
+    suspend fun getSubjects(): List<UWSubjectData> {
+        val url = "$uwAPIUrl/subjects"
+        val response = client.get(url) {
+            header("X-API-KEY", uwAPIKey)
+        }
+        return Json.decodeFromString<List<UWSubjectData>>(response.body())
+    }
+
+    suspend fun getCourses(termCode: String, subject: String): List<UWCourseData> {
+        val url = "$uwAPIUrl/courses/$termCode/$subject"
+        val response = client.get(url) {
+            header("X-API-KEY", uwAPIKey)
+        }
+        return Json.decodeFromString<List<UWCourseData>>(response.body())
+    }
 
 }
