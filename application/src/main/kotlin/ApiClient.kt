@@ -59,7 +59,17 @@ class ApiClient {
         val url = "$baseUrl/strokes/$strokeId"
         return client.delete(url)
     }
-
+    suspend fun updateStrokes(serializedStrokes: List<SerializableStroke>) {
+        val url = "$baseUrl/strokes/update"
+        val updateStrokesRequest = UpdateStrokesRequest(serializedStrokes)
+        try {
+            val response = client.put(url) {
+                setBody(Json.encodeToString(updateStrokesRequest))
+            }
+        } catch (e: Exception) {
+            println(e)
+        }
+    }
 
     // Function to send a login request to the server
     suspend fun loginRequest(email: String, password: String): Pair<String, User?> {
@@ -109,13 +119,22 @@ class ApiClient {
         return Json.decodeFromString(response.body())
     }
 
+    suspend fun removeUserFromRoom(roomId: String, userId: String): HttpResponse {
+        val url = "$baseUrl/rooms/room/$roomId/user/$userId"
+        return client.delete(url)
+    }
+
     suspend fun createRoom(roomName: String, roomCode: String, createdBy: UUID): HttpResponse {
         val url = "$baseUrl/rooms/create"
-        val roomData = CreateRoomData(roomName, roomCode, createdBy.toString())
+        val roomData = RoomData(roomName, roomCode, createdBy.toString())
         return client.post(url) {
             contentType(ContentType.Application.Json)
             setBody(Json.encodeToString(roomData))
         }
+    }
+    suspend fun deleteRoom(roomCode: String): HttpResponse {
+        val url = "$baseUrl/rooms/delete/$roomCode"
+        return client.delete(url)
     }
 
     suspend fun findRoomByCode(roomCode: String): Room? {
@@ -137,18 +156,6 @@ class ApiClient {
                 // Handle other unexpected status codes
                 throw RuntimeException("Unexpected response: ${response.status.description}")
             }
-        }
-    }
-
-    suspend fun updateStrokes(serializedStrokes: List<SerializableStroke>) {
-        val url = "$baseUrl/strokes/update"
-        val updateStrokesRequest = UpdateStrokesRequest(serializedStrokes)
-        try {
-            val response = client.put(url) {
-                setBody(Json.encodeToString(updateStrokesRequest))
-            }
-        } catch (e: Exception) {
-            println(e)
         }
     }
 

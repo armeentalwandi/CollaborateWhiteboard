@@ -1,7 +1,7 @@
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateRoomData(
+data class RoomData(
     var roomName: String,
     var roomCode: String,
     var createdBy: String,

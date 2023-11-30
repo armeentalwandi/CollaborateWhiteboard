@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":models"))
     implementation(compose.desktop.currentOs)
 
-    implementation("org.apache.pdfbox:pdfbox:3.0.0")
+    implementation("com.itextpdf:itext7-core:8.0.2")
 
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")

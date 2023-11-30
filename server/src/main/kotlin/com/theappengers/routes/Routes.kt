@@ -1,28 +1,24 @@
 package com.theappengers.routes
 
-import CreateRoomData
+import RoomData
 import SerializableStroke
 import UpdateStrokesRequest
 import com.theappengers.schemas.*
 import com.theappengers.schemas.StrokesTable
 import com.theappengers.schemas.StrokesTable.serializedStroke
-import com.theappengers.schemas.StrokesTable.roomId
 import com.theappengers.schemas.UpdateStrokeRequest
 import com.theappengers.schemas.updateStrokeRow
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -115,10 +111,30 @@ fun Routing.roomRoutes() {
                 }
             }
 
+            delete("/room/{roomId}/user/{userId}") {
+                val roomId = call.parameters["roomId"]
+                val userId = call.parameters["userId"]
+
+                if (roomId == null || userId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Missing roomId or userId")
+                    return@delete
+                }
+
+                try {
+                    val roomIdUUID = UUID.fromString(roomId)
+                    val userIdUUID = UUID.fromString(userId)
+                    RoomsToUsersTable.removeUserFromRoom(roomIdUUID, userIdUUID)
+                    call.respond(HttpStatusCode.OK, "User removed from room successfully")
+                } catch (e: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid roomId or userId")
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, e.message ?: "Internal server error")
+                }
+            }
 
             post("/create") {
                 // Extract room details from the request
-                val room = call.receive<CreateRoomData>() // Assuming Room is your data class
+                val room = call.receive<RoomData>() // Assuming Room is your data class
                 // Add logic to create the room in the database
                 try {
                     val createdRoom = RoomsTable.createRoom(room.roomName, room.roomCode, UUID.fromString(room.createdBy))
@@ -130,6 +146,22 @@ fun Routing.roomRoutes() {
                     }
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid room data")
+                }
+            }
+
+            delete( "/delete/{roomCode}") {
+                val roomCode = call.parameters["roomCode"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing or incorrect room code")
+
+                val room = RoomsTable.findRoomByCode(roomCode)
+                if (room != null) {
+                    val deleted = RoomsTable.deleteRoom(UUID.fromString(room.roomId))
+                    if (deleted) {
+                        call.respond(HttpStatusCode.OK, "Room deleted successfully")
+                    } else {
+                        call.respond(HttpStatusCode.InternalServerError, "Error deleting room")
+                    }
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Room not found")
                 }
             }
         }

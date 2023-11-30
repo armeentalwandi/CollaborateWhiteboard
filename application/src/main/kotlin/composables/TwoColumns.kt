@@ -4,24 +4,29 @@ import PromptDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.TextButton
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import apiClient
+import com.itextpdf.kernel.colors.DeviceRgb
+import com.itextpdf.kernel.geom.PageSize
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfWriter
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas
+import directoryPath
 import helpButton
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import models.AppData
+import models.ShapeType
 import models.Stroke
 import models.fromSerializable
-import org.apache.pdfbox.pdmodel.PDDocument
-import org.apache.pdfbox.pdmodel.PDPage
-import org.apache.pdfbox.pdmodel.PDPageContentStream
-import org.apache.pdfbox.pdmodel.common.PDRectangle
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.IOException
@@ -37,11 +42,13 @@ enum class Mode(val resource: String) {
     DRAW_SHAPES("shapes.svg")
 }
 
-// Composable function for the two-column layout for the WhiteBoard
 @Composable
 fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
     // Left Column
     var selectedMode by remember { mutableStateOf(Mode.DRAW_LINES) }
+    var selectedShape by remember { mutableStateOf(ShapeType.Circle) }
+    val showShapesDropdownMenu = remember { mutableStateOf(false) }
+    val dropdownMenuPosition = remember { mutableStateOf(Offset(0f, 0f)) }
 
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -67,8 +74,45 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
                     }
 
                     Mode.entries.forEach { mode ->
-                        modeButton(mode) {
-                            selectedMode = mode
+                        if (mode == Mode.DRAW_SHAPES) {
+                            // Shapes button with dropdown logic
+                            modeButton(Mode.DRAW_SHAPES, onClick = { showShapesDropdownMenu.value = true })
+                            // DropdownMenu for shapes
+                            DropdownMenu(
+                                expanded = showShapesDropdownMenu.value,
+                                onDismissRequest = { showShapesDropdownMenu.value = false },
+                                modifier = Modifier.absoluteOffset(
+                                    x = dropdownMenuPosition.value.x.dp,
+                                    y = dropdownMenuPosition.value.y.dp
+                                )
+                            ) {
+                                DropdownMenuItem(onClick = {
+                                    selectedMode = Mode.DRAW_SHAPES
+                                    selectedShape = ShapeType.Rectangle
+                                    showShapesDropdownMenu.value = false
+                                }) {
+                                    Text("Rectangle")
+                                }
+                                DropdownMenuItem(onClick = {
+                                    selectedMode = Mode.DRAW_SHAPES
+                                    selectedShape = ShapeType.Circle
+                                    showShapesDropdownMenu.value = false
+                                }) {
+                                    Text("Circle")
+                                }
+                                DropdownMenuItem(onClick = {
+                                    selectedMode = Mode.DRAW_SHAPES
+                                    selectedShape = ShapeType.Triangle
+                                    showShapesDropdownMenu.value = false
+                                }) {
+                                    Text("Triangle")
+                                }
+                            }
+                        } else {
+                            // Other mode buttons
+                            modeButton(mode) {
+                                selectedMode = mode
+                            }
                         }
                     }
 
@@ -84,8 +128,7 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
                         .fillMaxWidth()
                         .padding(8.dp)
                 ) {
-                    // whiteboard component with the selected drawing mode
-                    whiteboard(appData = data, selectedMode = selectedMode.name, shape = null)
+                    whiteboard(appData = data, selectedMode = selectedMode.name, shape = selectedShape)
                 }
             }
         }
@@ -114,7 +157,7 @@ fun exportButton(appData: AppData) {
     var showExportStatusDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
 
-    var savePath = "${System.getProperty("user.home")}/AppengersWhiteboard/${appData.user!!.first_name}_${appData.user!!.last_name}_${appData.currRoom!!.roomName}.pdf"
+    var savePath = "$directoryPath/${appData.user!!.first_name}_${appData.user!!.last_name}_${appData.currRoom!!.roomName}.pdf"
 
     TextButton(
         onClick = {
@@ -160,53 +203,49 @@ fun exportButton(appData: AppData) {
 
                         println("($minX, $minY) ($maxX, $maxY)")
 
-                        val pageHeight = (maxY - minY) + 100
-                        val pageWidth = (maxX - minX) + 100
-                        // Create a new PDF document
-                        val document = PDDocument()
-                        val page = PDPage(PDRectangle(0f,0f,pageWidth, pageHeight))
-                        document.addPage(page)
+                        val pageWidth = (maxX - minX) + 100 // Adding some margin
+                        val pageHeight = (maxY - minY) + 100 // Adding some margin
 
                         try {
-                            val contentStream = PDPageContentStream(document, page)
+                            val writer = PdfWriter(savePath)
+                            val pdfDoc = PdfDocument(writer)
+                            val page = pdfDoc.addNewPage(PageSize(pageWidth, pageHeight))
+                            val canvas = PdfCanvas(page)
 
                             for (stroke in strokes) {
                                 for (line in stroke.lines) {
                                     val color = line.color
-                                    // Flip the y-coordinate
-                                    val startY = pageHeight - (line.startOffset.y - minY)
-                                    val endY = pageHeight - (line.endOffset.y - minY)
-                                    val strokeWidth = line.strokeWidth.value // Assuming strokeWidth is in points
-
-                                    val awtColor = java.awt.Color(
-                                        (color.red * 255).toInt(),
-                                        (color.green * 255).toInt(),
-                                        (color.blue * 255).toInt()
+                                    val rgbColor = DeviceRgb(
+                                        color.red,
+                                        color.green,
+                                        color.blue
                                     )
+                                    val strokeWidth = line.strokeWidth.value
 
-                                    // Set color and stroke width
-                                    contentStream.setStrokingColor(awtColor)
-                                    contentStream.setLineWidth(strokeWidth)
+                                    canvas.setStrokeColor(rgbColor)
+                                    canvas.setLineWidth(strokeWidth)
 
-                                    // Draw the line with transformed y-coordinate
-                                    contentStream.moveTo(line.startOffset.x - minX + 25, startY - 25)
-                                    contentStream.lineTo(line.endOffset.x - minX + 25, endY - 25)
-                                    contentStream.stroke()
+                                    // Drawing the line
+                                    val startX = line.startOffset.x - minX + 50
+                                    val startY = pageHeight - (line.startOffset.y - minY + 50)
+                                    val endX = line.endOffset.x - minX + 50
+                                    val endY = pageHeight - (line.endOffset.y - minY + 50)
+
+                                    canvas.moveTo(startX.toDouble(), startY.toDouble())
+                                    canvas.lineTo(endX.toDouble(), endY.toDouble())
+                                    canvas.stroke()
                                 }
                             }
 
-                            contentStream.close()
-                            document.save(savePath)
+                            page.flush()
+                            pdfDoc.close()
+                            writer.close()
+
                             dialogMessage = "Document exported as PDF to '$savePath' successfully!"
                             showExportStatusDialog = true
-                            println("Document Exported as PDF to '$savePath' successfully!")
-                        } catch (e: IOException) {
-                            dialogMessage = "Export Failed :("
+                        } catch (e: Exception) {
+                            dialogMessage = "Failed to export document: ${e.localizedMessage}"
                             showExportStatusDialog = true
-                            println("Export Failed :(")
-                            e.printStackTrace()
-                        } finally {
-                            document.close()
                         }
                     }
                 }
@@ -227,7 +266,6 @@ fun exportButton(appData: AppData) {
     }
 
 }
-
 fun showSaveDialog(): String? {
     val frame = Frame().apply { isVisible = true }
     val fileDialog = FileDialog(frame, "Save As", FileDialog.SAVE).apply {

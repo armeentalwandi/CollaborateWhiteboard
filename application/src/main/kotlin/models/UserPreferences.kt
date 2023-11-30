@@ -13,6 +13,7 @@ import java.io.File
 data class PreferencesData(
     val windowHeight: Float,
     val windowWidth: Float
+
 )
 
 object UserPreferences {
