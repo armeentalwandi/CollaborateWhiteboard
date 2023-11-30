@@ -20,7 +20,6 @@ object RoomsTable : UUIDTable("Rooms") {
     val roomName = varchar("room_name", 255)
     val roomCode = varchar("room_code", 10).uniqueIndex()  // Assuming codes are 10 characters long and unique
     val createdBy = reference("created_by", UsersTable)
-//    val createdAt = datetime("created_at").default(LocalDateTime.now())
 }
 
 fun RoomsTable.createRoom(roomName: String, roomCode: String, createdBy: UUID): Room? {
@@ -30,7 +29,6 @@ fun RoomsTable.createRoom(roomName: String, roomCode: String, createdBy: UUID): 
             it[RoomsTable.roomName] = roomName
             it[RoomsTable.roomCode] = roomCode
             it[RoomsTable.createdBy] = createdBy
-//            it[RoomsTable.createdAt] = LocalDateTime.now()
         } get RoomsTable.id
 
         roomRow = RoomsTable.select { RoomsTable.id eq generatedKey }.singleOrNull()
@@ -41,7 +39,6 @@ fun RoomsTable.createRoom(roomName: String, roomCode: String, createdBy: UUID): 
         roomName = roomRow!![RoomsTable.roomName],
         roomCode = roomRow!![RoomsTable.roomCode],
         createdBy = roomRow!![RoomsTable.createdBy].value.toString(),
-//        createdAt = roomRow!![RoomsTable.createdAt]
     ) else null
 }
 
