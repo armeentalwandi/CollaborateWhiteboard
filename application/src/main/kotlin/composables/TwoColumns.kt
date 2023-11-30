@@ -116,8 +116,8 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
                         }
                     }
 
-                    helpButton()
                     exportButton(data)
+                    helpButton()
                 }
 
                 // Right Column
