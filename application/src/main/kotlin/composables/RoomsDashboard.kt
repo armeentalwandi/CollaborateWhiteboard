@@ -179,8 +179,10 @@ fun TopBar(userName: String, onSignOut: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Welcome back $userName",
+            "Welcome $userName!",
             style = MaterialTheme.typography.h4,
+
+
             color = Color.White
         )
         Row {
