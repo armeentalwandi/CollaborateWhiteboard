@@ -1,12 +1,13 @@
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.ui.Modifier
+import java.awt.Desktop
+import java.net.URI
 
 // Composable function for the welcome page
 @Composable
@@ -30,6 +31,19 @@ fun welcomePage(onLoginClick: () -> Unit, onRegisterClick: () -> Unit) {
             // Register Button
             Button(onClick = onRegisterClick) {
                 Text(text = "Register")
+            }
+
+
+            val desktop = if (Desktop.isDesktopSupported()) Desktop.getDesktop() else null
+            IconButton(
+                onClick = {
+                    desktop?.let {
+                        if (it.isSupported(Desktop.Action.BROWSE)) {
+                            it.browse(URI("https://appengers.netlify.app/help"))
+                        }
+                    }
+                }) {
+                Icon(Icons.Outlined.Info, contentDescription = "Info", modifier=Modifier.size(32.dp))
             }
         }
     }
