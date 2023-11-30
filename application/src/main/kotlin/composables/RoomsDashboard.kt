@@ -40,6 +40,10 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
     val removedRoomCodes = remember { mutableSetOf<String>() }
 
     val coroutineScope = rememberCoroutineScope()
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    ErrorDialog(showDialog = showErrorDialog, onDismiss = { showErrorDialog = false }, errorMessage = errorMessage)
+
 
 
     fun hideRoom(room: Room) {
@@ -111,12 +115,20 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
 
                 CreateRoomSection(roomName, onRoomNameChanged = { roomName = it }, onCreateRoom = {  runBlocking {
                     launch {
-                        val response = apiClient.createRoom(roomName, generateRandomRoomCode(), UUID.fromString(appData.user!!.userId))
-                        if (response.status == HttpStatusCode.Created) {
-                            val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
-                            appData.currRoom = createdRoom
-                            onGoToWhiteboard()
+                        if (roomName == "") {
+                            errorMessage = "Please enter a room name."
+                            showErrorDialog = true // Show the error dialog
+
+                        } else {
+                            val response = apiClient.createRoom(roomName, generateRandomRoomCode(), UUID.fromString(appData.user!!.userId))
+                            if (response.status == HttpStatusCode.Created) {
+                                val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
+                                appData.currRoom = createdRoom
+                                onGoToWhiteboard()
+                            }
+
                         }
+
                     }
                 }
                 })
