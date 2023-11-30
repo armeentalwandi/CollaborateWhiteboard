@@ -4,11 +4,13 @@ import PromptDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.TextButton
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import apiClient
@@ -22,6 +24,7 @@ import helpButton
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import models.AppData
+import models.ShapeType
 import models.Stroke
 import models.fromSerializable
 import java.awt.FileDialog
@@ -39,11 +42,13 @@ enum class Mode(val resource: String) {
     DRAW_SHAPES("shapes.svg")
 }
 
-// Composable function for the two-column layout for the WhiteBoard
 @Composable
 fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
     // Left Column
     var selectedMode by remember { mutableStateOf(Mode.DRAW_LINES) }
+    var selectedShape by remember { mutableStateOf(ShapeType.Circle) }
+    val showShapesDropdownMenu = remember { mutableStateOf(false) }
+    val dropdownMenuPosition = remember { mutableStateOf(Offset(0f, 0f)) }
 
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -69,8 +74,45 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
                     }
 
                     Mode.entries.forEach { mode ->
-                        modeButton(mode) {
-                            selectedMode = mode
+                        if (mode == Mode.DRAW_SHAPES) {
+                            // Shapes button with dropdown logic
+                            modeButton(Mode.DRAW_SHAPES, onClick = { showShapesDropdownMenu.value = true })
+                            // DropdownMenu for shapes
+                            DropdownMenu(
+                                expanded = showShapesDropdownMenu.value,
+                                onDismissRequest = { showShapesDropdownMenu.value = false },
+                                modifier = Modifier.absoluteOffset(
+                                    x = dropdownMenuPosition.value.x.dp,
+                                    y = dropdownMenuPosition.value.y.dp
+                                )
+                            ) {
+                                DropdownMenuItem(onClick = {
+                                    selectedMode = Mode.DRAW_SHAPES
+                                    selectedShape = ShapeType.Rectangle
+                                    showShapesDropdownMenu.value = false
+                                }) {
+                                    Text("Rectangle")
+                                }
+                                DropdownMenuItem(onClick = {
+                                    selectedMode = Mode.DRAW_SHAPES
+                                    selectedShape = ShapeType.Circle
+                                    showShapesDropdownMenu.value = false
+                                }) {
+                                    Text("Circle")
+                                }
+                                DropdownMenuItem(onClick = {
+                                    selectedMode = Mode.DRAW_SHAPES
+                                    selectedShape = ShapeType.Triangle
+                                    showShapesDropdownMenu.value = false
+                                }) {
+                                    Text("Triangle")
+                                }
+                            }
+                        } else {
+                            // Other mode buttons
+                            modeButton(mode) {
+                                selectedMode = mode
+                            }
                         }
                     }
 
@@ -86,8 +128,7 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
                         .fillMaxWidth()
                         .padding(8.dp)
                 ) {
-                    // whiteboard component with the selected drawing mode
-                    whiteboard(appData = data, selectedMode = selectedMode.name, shape = null)
+                    whiteboard(appData = data, selectedMode = selectedMode.name, shape = selectedShape)
                 }
             }
         }

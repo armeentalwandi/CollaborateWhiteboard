@@ -49,9 +49,6 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
     val undoStack = remember { mutableStateListOf<Action>() }
     val redoStack = remember { mutableStateListOf<Action>() }
 
-    var showShapeOptionsScreen by remember { mutableStateOf(false) }
-    var selectedShapeType by remember { mutableStateOf<ShapeType?>(null) }
-
     var selectionStart by remember { mutableStateOf<Offset?>(null) }
     var selectionEnd by remember { mutableStateOf<Offset?>(null) }
     var isSelecting by remember { mutableStateOf(false) }
@@ -61,12 +58,14 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
 
     var isMovingStroke by remember { mutableStateOf(false) }
 
-    // Handling specific scenarios based on the selected mode
-    if (selectedMode == "DRAW_SHAPES" && selectedShapeType == null) {
-        showShapeOptionsScreen = true
-    }
+    var currentShape by remember { mutableStateOf(shape) }
+
 
     // Retrieving strokes from the server on composition for a specific user
+
+    LaunchedEffect(shape) {
+        currentShape = shape
+    }
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             while(isActive){
@@ -224,11 +223,11 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                     if (selectedMode == "DRAW_LINES") {
                                         currentStroke = Stroke(offset, userId = appData.user!!.userId, strokeId = UUID.randomUUID().toString(), roomId = appData.currRoom!!.roomId, lines = mutableListOf())
                                     } else if (selectedMode == "DRAW_SHAPES") {
-                                        if (selectedShapeType == ShapeType.Circle) {
+                                        if (currentShape == ShapeType.Circle) {
                                             currentStroke = createCircleStroke(center = offset, initialRadius=0f, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, appData = appData)
-                                        } else if (selectedShapeType == ShapeType.Rectangle) {
+                                        } else if (currentShape == ShapeType.Rectangle) {
                                             currentStroke = createRectangleStroke(topLeft = offset, bottomRight = offset, colour = colour, strokeSize = strokeSize, appData = appData)
-                                        } else if (selectedShapeType == ShapeType.Triangle) {
+                                        } else if (currentShape == ShapeType.Triangle) {
                                             currentStroke = createTriangleStroke(vertex1 = offset, dragEnd = Offset(offset.x + 1f, offset.y + 1f), colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, appData = appData)                             }
                                     } else if (selectedMode == "SELECT_LINES") {
                                         if (isMovingStroke) {
@@ -245,7 +244,6 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                     // Logic for handling drag (e.g., drawing lines, erasing, drawing shapes)
                                     change.consume()
                                     val startPosition = change.position - dragAmount
-                                    val startPositionTriangle = initialDragPosition ?: return@detectDragGestures
                                     val endPosition = change.position
                                     if (isWithinCanvasBounds(startPosition, canvasSize) && isWithinCanvasBounds(endPosition, canvasSize)) {
                                         if (selectedMode == "DRAW_LINES") {
@@ -289,12 +287,12 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                             }
 
                                         } else if (selectedMode == "DRAW_SHAPES") {
-                                            if (selectedShapeType == ShapeType.Circle) {
+                                            if (currentShape == ShapeType.Circle) {
                                                 val radius = distanceBetweenTwoPoints(currentStroke!!.center!!, endPosition)
                                                 currentStroke = createCircleStroke(currentStroke!!.center!!, radius, colour, strokeSize, canvasSize, appData = appData)
-                                            } else if (selectedShapeType == ShapeType.Rectangle) {
+                                            } else if (currentShape == ShapeType.Rectangle) {
                                                 currentStroke = createRectangleStroke(topLeft = currentStroke!!.startOffset, bottomRight = endPosition, colour = colour, strokeSize = strokeSize, appData = appData)
-                                            } else if (selectedShapeType == ShapeType.Triangle) {
+                                            } else if (currentShape == ShapeType.Triangle) {
                                                 currentStroke = createTriangleStroke(vertex1 = currentStroke!!.startOffset, dragEnd = endPosition, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize,appData = appData)
                                             }
                                         } else if (selectedMode == "SELECT_LINES") {
@@ -335,7 +333,6 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                         lines.addAll(currentStroke!!.lines)
                                         undoStack.add(Action.AddStroke(currentStroke!!))
                                         redoStack.clear()  // Clear redo stack when a new action is done
-                                        selectedShapeType = null
                                     } else if (selectedMode == "SELECT_LINES") {
                                         if (isMovingStroke) {
                                             CoroutineScope(Dispatchers.IO).launch {
@@ -360,7 +357,6 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                                         }
                                     }
 
-                                    // I WANT TO POST STROKE HERE
                                     runBlocking {
                                         launch {
                                             if (currentStroke != null){
@@ -457,21 +453,7 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
                 })
             }
         }
-    } else if (showShapeOptionsScreen) {
-        AlertDialog(
-            onDismissRequest = { showShapeOptionsScreen = false },
-            title = { Text("Select a Shape") },
-            buttons = {
-                // Display shape options in the dialog
-                shapeOptionsDialogButtons { selectedShape ->
-                    // Handle the selected shape (e.g., set it in the whiteboard composable)
-                    selectedShapeType = selectedShape
-                    showShapeOptionsScreen = false // Close the dialog
-                }
-            }
-        )
     }
-
 }
 
 // function to determine if 2 lines intersect, returns a boolean
