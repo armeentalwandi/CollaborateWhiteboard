@@ -105,11 +105,15 @@ class ApiClient {
 
     suspend fun createRoom(roomName: String, roomCode: String, createdBy: UUID): HttpResponse {
         val url = "$baseUrl/rooms/create"
-        val roomData = CreateRoomData(roomName, roomCode, createdBy.toString())
+        val roomData = RoomData(roomName, roomCode, createdBy.toString())
         return client.post(url) {
             contentType(ContentType.Application.Json)
             setBody(Json.encodeToString(roomData))
         }
+    }
+    suspend fun deleteRoom(roomCode: String): HttpResponse {
+        val url = "$baseUrl/rooms/delete/$roomCode"
+        return client.delete(url)
     }
 
     suspend fun findRoomByCode(roomCode: String): Room? {
