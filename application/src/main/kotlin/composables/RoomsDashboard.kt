@@ -199,7 +199,7 @@ fun RoomCard(room: Room, onClick: () -> Unit, onCloseClick: (String) -> Unit) {
     ) {
         Box {
             Text(
-                text = room.roomName,
+                text = "Name: ${room.roomName}\nRoom Code: ${room.roomCode}",
                 style = MaterialTheme.typography.subtitle1,
                 modifier = Modifier.align(Alignment.Center)
             )
