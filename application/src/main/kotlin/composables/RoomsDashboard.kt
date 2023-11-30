@@ -45,7 +45,32 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
 
     Column() {
         TopBar(userName = appData.user?.first_name ?: "User", onSignOut = onSignOut)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f).padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally // Centers the children horizontally
+            ) {
 
+
+                Text("Current Rooms", style = MaterialTheme.typography.h4)
+
+
+                LazyRow(
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    items(rooms) { room ->
+                        appData.currRoom = room
+                        RoomCard(room, onClick = { onGoToWhiteboard() })
+                    }
+                }
+            }
+
+
+        }
     }
 }
 
@@ -81,6 +106,21 @@ fun TopBar(userName: String, onSignOut: () -> Unit) {
             IconButton(onClick = onSignOut) {
                 Icon(Icons.Filled.ExitToApp, contentDescription = "Sign out", tint = Color.White, modifier=Modifier.size(32.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun RoomCard(room: Room, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .size(width = 180.dp, height = 100.dp) // Increase size as needed
+            .clickable { onClick() },
+        elevation = 4.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(room.roomName, style = MaterialTheme.typography.subtitle1)
         }
     }
 }
