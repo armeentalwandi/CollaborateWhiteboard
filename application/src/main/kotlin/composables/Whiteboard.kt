@@ -202,6 +202,12 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
         ) {}
 
         Spacer(modifier = Modifier.weight(1f)) // Dynamic spacing to push the row to the right
+
+        // Display the room code
+        Text(
+            text = "Room Code: ${appData.currRoom?.roomCode ?: "N/A"}",
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
     }
 
     Spacer(modifier = Modifier.height(16.dp)) // Add spacing between the row and the canvas

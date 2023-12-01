@@ -44,8 +44,6 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
             } else {
                 errorMessage = "Invalid credentials. Please try again."
                 showErrorDialog = true // Show the error dialog
-                //ErrorDialog(showDialog = showErrorDialog, onDismiss = { showErrorDialog = false }, errorMessage = errorMessage)
-
             }
             email = ""
             password = ""
