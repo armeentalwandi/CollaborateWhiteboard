@@ -75,6 +75,25 @@ fun Routing.roomRoutes() {
             }
         }
 
+        post("/room/{roomId}/add/{userId}") {
+            val roomId = UUID.fromString(call.parameters["roomId"])
+            val userId = UUID.fromString(call.parameters["userId"])
+
+            if (roomId == null || userId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Missing roomId or userId")
+                return@post
+            }
+
+            try {
+                RoomsToUsersTable.addUserToRoom(roomId, userId)
+                call.respond(HttpStatusCode.OK, "User added to room successfully")
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid roomId or userId")
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, e.message ?: "Internal server error")
+            }
+        }
+
         delete( "/delete/{roomCode}") {
             val roomCode = call.parameters["roomCode"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing or incorrect room code")
 

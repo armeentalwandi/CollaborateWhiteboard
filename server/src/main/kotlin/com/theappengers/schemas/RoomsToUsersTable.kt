@@ -21,6 +21,26 @@ fun RoomsToUsersTable.addUserToRoom(roomId: UUID, userId: UUID) {
     }
 }
 
+//
+//fun RoomsToUsersTable.addUserToRoom(roomCode: String, userId: UUID) {
+//    transaction {
+//        var room = RoomsTable.select {
+//            RoomsTable.roomCode eq roomCode
+//        }.firstOrNull()
+//
+//        // Check if a room with the given roomCode exists
+//        if (room != null) {
+//            // Insert a new entry into the RoomsToUsersTable
+//            RoomsToUsersTable.insert {
+//                it[RoomsToUsersTable.roomId] = room[RoomsTable.id].value
+//                it[RoomsToUsersTable.userId] = userId
+//            }
+//        } else {
+//
+//        }
+//    }
+//}
+
 fun RoomsToUsersTable.removeUserFromRoom(roomId: UUID, userId: UUID) {
     transaction {
         RoomsToUsersTable.deleteWhere {

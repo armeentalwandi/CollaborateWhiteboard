@@ -29,7 +29,7 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val role by remember { mutableStateOf(Role.Student) }
+    var role by remember { mutableStateOf(Role.Student) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
@@ -118,12 +118,10 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        var selectedRole by remember { mutableStateOf(Role.Student) }
-
         // DropdownTextField for selecting the user's role
         dropdownTextField(
-            role = selectedRole,
-            onRoleChange = { selectedRole = it }
+            role = role,
+            onRoleChange = { role = it }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
