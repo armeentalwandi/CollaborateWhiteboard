@@ -197,7 +197,7 @@ class ApiClient {
         val response = client.get(url) {
             header("X-API-KEY", uwAPIKey)
         }
-        return Json.decodeFromString<List<UWCourseData>>(response.body())
+        return if (response.status == HttpStatusCode.NotFound) listOf() else Json.decodeFromString<List<UWCourseData>>(response.body())
     }
 
 }

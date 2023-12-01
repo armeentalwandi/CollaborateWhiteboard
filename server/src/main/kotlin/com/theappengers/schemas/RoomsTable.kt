@@ -18,7 +18,7 @@ import java.util.UUID
 
 object RoomsTable : UUIDTable("Rooms") {
     val roomName = varchar("room_name", 255)
-    val roomCode = varchar("room_code", 10).uniqueIndex()  // Assuming codes are 10 characters long and unique
+    val roomCode = varchar("room_code", 255).uniqueIndex()  // Assuming codes are 10 characters long and unique
     val createdBy = reference("created_by", UsersTable)
 }
 
