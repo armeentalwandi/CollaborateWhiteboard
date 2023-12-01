@@ -332,13 +332,22 @@ fun CreateCourseRoomSection(
 
     ErrorDialog(showDialog = showErrorDialog, onDismiss = { showErrorDialog = false }, errorMessage = errorMessage)
 
-    Column {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text("Create Course Room", style = MaterialTheme.typography.h4)
         Spacer(modifier = Modifier.height(32.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
             // Subjects Dropdown
-            Box(modifier = Modifier.weight(1f)) {
+            Box(modifier = Modifier.width(IntrinsicSize.Min).padding(end = 8.dp), contentAlignment = Alignment.Center) {
                 Text(text = selectedSubject?.code ?: "Select Subject")
                 IconButton(onClick = { subjectsDropdownExpanded = true }) {
                     Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
@@ -373,7 +382,7 @@ fun CreateCourseRoomSection(
             }
 
             // Courses Dropdown, enabled only if a subject is selected
-            Box(modifier = Modifier.weight(1f)) {
+            Box(modifier = Modifier.width(IntrinsicSize.Min).padding(start = 8.dp), contentAlignment = Alignment.Center) {
                 Text(text = selectedCourse?.let { "${it.subjectCode} ${it.catalogNumber}" } ?: "Select Course")
                 IconButton(
                     onClick = { coursesDropdownExpanded = true },
