@@ -211,12 +211,8 @@ fun RoomCard(room: Room, onClick: () -> Unit, onCloseClick: (String) -> Unit) {
             .clickable { onClick() },
         elevation = 4.dp
     ) {
-        Box {
-            Text(
-                text = "Name: ${room.roomName}\nRoom Code: ${room.roomCode}",
-                style = MaterialTheme.typography.subtitle1,
-                modifier = Modifier.align(Alignment.Center)
-            )
+        Box(contentAlignment = Alignment.Center) {
+            Text(room.roomName, style = MaterialTheme.typography.subtitle1)
 
             IconButton(
                 onClick = { onCloseClick(room.roomCode) },
