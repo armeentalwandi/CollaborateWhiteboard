@@ -359,6 +359,10 @@ fun CreateCourseRoomSection(
                                     courses.clear()
                                     val courseList = apiClient.getCourses(termCode, subject.code).sortedBy { it.catalogNumber }
                                     courses.addAll(courseList)
+                                    if (courses.isNullOrEmpty()) {
+                                        errorMessage = "No courses found for this subject this term."
+                                        showErrorDialog = true // Show the error dialog
+                                    }
                                 }
                             }
                         }) {
@@ -373,7 +377,7 @@ fun CreateCourseRoomSection(
                 Text(text = selectedCourse?.let { "${it.subjectCode} ${it.catalogNumber}" } ?: "Select Course")
                 IconButton(
                     onClick = { coursesDropdownExpanded = true },
-                    enabled = selectedSubject != null
+                    enabled = selectedSubject != null && courses.isNotEmpty()
                 ) {
                     Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
                 }
