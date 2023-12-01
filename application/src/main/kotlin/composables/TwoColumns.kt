@@ -5,12 +5,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import apiClient
@@ -20,16 +20,17 @@ import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas
 import directoryPath
-import helpButton
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import models.AppData
 import models.ShapeType
 import models.Stroke
 import models.fromSerializable
+import java.awt.Desktop
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.IOException
+import java.net.URI
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -116,8 +117,23 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
                         }
                     }
 
-                    helpButton()
                     exportButton(data)
+
+                    val desktop = if (Desktop.isDesktopSupported()) Desktop.getDesktop() else null
+
+                    IconButton(
+                        onClick = {
+                            desktop?.let {
+                                if (it.isSupported(Desktop.Action.BROWSE)) {
+                                    it.browse(URI("https://appengers.netlify.app/help"))
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(19.dp)
+                    ) {
+                        Icon(Icons.Outlined.Info, contentDescription = "Info", modifier=Modifier.size(25.dp))
+                    }
                 }
 
                 // Right Column
@@ -252,7 +268,7 @@ fun exportButton(appData: AppData) {
             }
         },
         modifier = Modifier
-            .padding(16.dp)
+            .padding(10.dp)
     ) {
         Image(
             painter = painterResource("save.svg"),

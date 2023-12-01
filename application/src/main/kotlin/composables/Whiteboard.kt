@@ -20,6 +20,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.SnackbarResult
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+
 import apiClient
 import kotlinx.coroutines.*
 import models.*
@@ -59,6 +70,10 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
     var isMovingStroke by remember { mutableStateOf(false) }
 
     var currentShape by remember { mutableStateOf(shape) }
+
+    val clipboardManager = LocalClipboardManager.current
+    var showCustomSnackbar by remember { mutableStateOf(false) }
+
 
 
     // Retrieving strokes from the server on composition for a specific user
@@ -203,12 +218,20 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
 
         Spacer(modifier = Modifier.weight(1f)) // Dynamic spacing to push the row to the right
 
-        // Display the room code
-        Text(
-            text = "Room Code: ${appData.currRoom?.roomCode ?: "N/A"}",
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
+        TextButton(onClick = {
+            clipboardManager.setText(AnnotatedString(appData.currRoom!!.roomCode))
+            showCustomSnackbar = true
+        }) {
+            Text(text = "Room Code: ${appData.currRoom!!.roomCode}")
+        }
+
     }
+
+    CustomSnackbar(
+        message = "Room Code Copied to Clipboard",
+        visible = showCustomSnackbar,
+        onDismiss = { showCustomSnackbar = false }
+    )
 
     Spacer(modifier = Modifier.height(16.dp)) // Add spacing between the row and the canvas
     var initialDragPosition: Offset? = null
@@ -532,3 +555,29 @@ fun isLineWithinCanvasBounds(line: Line, dragAmount: Offset, canvasSize: Size): 
             newEnd.x >= 0f && newEnd.x <= canvasSize.width &&
             newEnd.y >= 0f && newEnd.y <= canvasSize.height
 }
+
+@Composable
+fun CustomSnackbar(message: String, visible: Boolean, onDismiss: () -> Unit) {
+    if (visible) {
+        LaunchedEffect(Unit) {
+            delay(800)  // Custom duration in milliseconds
+            onDismiss()
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            Text(
+                text = message,
+                style = TextStyle(fontSize = 13.sp),
+                color = Color.DarkGray,
+                modifier = Modifier
+                    .background(Color.Transparent)
+                    .padding(8.dp)
+            )
+        }
+    }
+}
+

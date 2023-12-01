@@ -159,6 +159,23 @@ class ApiClient {
         }
     }
 
+    suspend fun addUserToRoom(roomId: UUID, userId: UUID): String {
+        val url = "$baseUrl/rooms/room/$roomId/add/$userId"
+        try {
+            val response = client.post(url)
+
+            return when (response.status) {
+                HttpStatusCode.OK -> "User added to room successfully"
+                HttpStatusCode.BadRequest -> "Bad request: ${response.bodyAsText()}"
+                HttpStatusCode.InternalServerError -> "Server error: ${response.bodyAsText()}"
+                else -> "Unexpected error: ${response.status.description}"
+            }
+        } catch (e: Exception) {
+            // Handle exceptions such as network errors, timeouts, etc.
+            return "Exception occurred: ${e.message}"
+        }
+    }
+
     suspend fun getCurrentTermData(): UWTermData {
         val url = "$uwAPIUrl/terms/current"
         val response = client.get(url) {

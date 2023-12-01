@@ -8,6 +8,7 @@ import androidx.compose.ui.window.rememberWindowState
 import composables.*
 import models.AppData
 import models.UserPreferences
+import java.awt.Dimension
 import java.io.File
 
 val ENVIRONMENT = "local"
@@ -89,6 +90,8 @@ fun main() = application {
         resizable = true,
         state = windowState
     ) {
+        window.minimumSize = Dimension(900,700)
+
         app()
 
         // Observe the window size changes

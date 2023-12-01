@@ -2,6 +2,8 @@ package composables
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,7 +21,9 @@ import kotlinx.coroutines.runBlocking
 import models.AppData
 import androidx.compose.ui.input.key.*
 import composables.*
-import helpButton
+import java.awt.Desktop
+import java.awt.SystemColor.desktop
+import java.net.URI
 
 
 // Composable function for the login page
@@ -121,7 +125,17 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
                 Text(text = "Login")
             }
         }
-        helpButton()
+        val desktop = if (Desktop.isDesktopSupported()) Desktop.getDesktop() else null
+        IconButton(
+            onClick = {
+                desktop?.let {
+                    if (it.isSupported(Desktop.Action.BROWSE)) {
+                        it.browse(URI("https://appengers.netlify.app/help"))
+                    }
+                }
+            }) {
+            Icon(Icons.Outlined.Info, contentDescription = "Info", modifier=Modifier.size(32.dp))
+        }
     }
 }
 

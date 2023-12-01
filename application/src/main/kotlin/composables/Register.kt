@@ -8,10 +8,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.outlined.Info
 import apiClient
-import helpButton
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.awt.Desktop
+import java.net.URI
 import java.util.*
 
 // Enumeration to represent user roles
@@ -27,7 +29,7 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val role by remember { mutableStateOf(Role.Student) }
+    var role by remember { mutableStateOf(Role.Student) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
@@ -116,12 +118,10 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        var selectedRole by remember { mutableStateOf(Role.Student) }
-
         // DropdownTextField for selecting the user's role
         dropdownTextField(
-            role = selectedRole,
-            onRoleChange = { selectedRole = it }
+            role = role,
+            onRoleChange = { role = it }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -149,7 +149,18 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
                 Text(text = "Register")
             }
 
-            helpButton()
+
+            val desktop = if (Desktop.isDesktopSupported()) Desktop.getDesktop() else null
+            IconButton(
+                onClick = {
+                    desktop?.let {
+                        if (it.isSupported(Desktop.Action.BROWSE)) {
+                            it.browse(URI("https://appengers.netlify.app/help"))
+                        }
+                    }
+                }) {
+                Icon(Icons.Outlined.Info, contentDescription = "Info", modifier=Modifier.size(32.dp))
+            }
         }
     }
     LaunchedEffect(Unit) {

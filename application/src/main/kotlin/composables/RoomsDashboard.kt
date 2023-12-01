@@ -44,6 +44,10 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
     var roomCode by remember { mutableStateOf("") }
     val removedRoomCodes = remember { mutableSetOf<String>() }
     val coroutineScope = rememberCoroutineScope()
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    ErrorDialog(showDialog = showErrorDialog, onDismiss = { showErrorDialog = false }, errorMessage = errorMessage)
+
 
     fun hideRoom(room: Room) {
         coroutineScope.launch {
@@ -125,11 +129,20 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                     onCreateRoom = {
                         runBlocking {
                             launch {
-                                val response = apiClient.createRoom(roomName, generateRandomRoomCode(), UUID.fromString(appData.user!!.userId))
-                                if (response.status == HttpStatusCode.Created) {
-                                    val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
-                                    appData.currRoom = createdRoom
-                                    onGoToWhiteboard()
+                                if (roomName == "") {
+                                    errorMessage = "Please enter a room name."
+                                    showErrorDialog = true // Show the error dialog
+                                } else {
+                                    val response = apiClient.createRoom(
+                                        roomName,
+                                        generateRandomRoomCode(),
+                                        UUID.fromString(appData.user!!.userId)
+                                    )
+                                    if (response.status == HttpStatusCode.Created) {
+                                        val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
+                                        appData.currRoom = createdRoom
+                                        onGoToWhiteboard()
+                                    }
                                 }
                             }
                         }
@@ -158,6 +171,9 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                                             val foundRoom = apiClient.findRoomByCode(roomCode)
 
                                             if (foundRoom != null) {
+
+                                                apiClient.addUserToRoom(UUID.fromString(foundRoom.roomId), UUID.fromString(appData.user!!.userId))
+
                                                 appData.currRoom = foundRoom
                                                 onGoToWhiteboard()
                                             } else {
@@ -244,7 +260,7 @@ fun RoomCard(room: Room, onClick: () -> Unit, onCloseClick: (String) -> Unit) {
             .clickable { onClick() },
         elevation = 4.dp
     ) {
-        Box {
+        Box(contentAlignment = Alignment.Center) {
             Text(
                 text = room.roomName,
                 style = MaterialTheme.typography.subtitle1,
@@ -383,7 +399,7 @@ fun CreateCourseRoomSection(
                 val roomName = "${selectedSubject?.code} ${selectedCourse?.catalogNumber} - ${currentTerm!!.name}"
                 val roomCode = "${selectedSubject?.code}${selectedCourse?.catalogNumber}${currentTerm!!.termCode}"
                 if (roomName.isNotBlank() && roomCode.isNotBlank()) {
-                    if (user!!.auth_level == "Professor") {
+                    if (user!!.auth_level == "professor") {
                         onCreateCourseRoom(roomName, roomCode)
                     } else {
                         errorMessage = "You must be a Professor to create Course Rooms."
