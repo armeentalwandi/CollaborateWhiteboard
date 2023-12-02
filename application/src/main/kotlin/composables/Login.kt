@@ -24,6 +24,8 @@ import composables.*
 import java.awt.Desktop
 import java.awt.SystemColor.desktop
 import java.net.URI
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 
 
 // Composable function for the login page
@@ -76,7 +78,9 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth().onPreviewKeyEvent { keyEvent ->
+            modifier = Modifier
+                .width(300.dp)
+                .onPreviewKeyEvent { keyEvent ->
                 if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
                     performLogin()
                     true // Indicate that the event has been consumed
@@ -104,7 +108,8 @@ fun loginPage(onLoginSuccessful: () -> Unit, onBack: () -> Unit, onNoAccount: ()
 
         // Row for Back and Login buttons
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .width(300.dp) ,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // Back Button
@@ -145,13 +150,17 @@ fun passwordField(password: String, onPasswordChange: (String) -> Unit, onEnterP
     // State variable to toggle password visibility
     var isPasswordVisible by remember { mutableStateOf(false) }
 
-    Column {
-        // Password input field with visibility toggle
+    Column (
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+
         OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
             label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth().onPreviewKeyEvent { keyEvent ->
+            modifier = Modifier
+                .width(300.dp)
+                .onPreviewKeyEvent { keyEvent ->
                 if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
                     onEnterPress()
                     true // Indicate that the event has been consumed
@@ -168,7 +177,7 @@ fun passwordField(password: String, onPasswordChange: (String) -> Unit, onEnterP
         // Row for checkbox and label to show/hide password
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+
         ) {
             // Checkbox to toggle password visibility
             Checkbox(

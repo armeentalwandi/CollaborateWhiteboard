@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import java.awt.Desktop
 import java.net.URI
 import java.util.*
+import androidx.compose.foundation.clickable
 
 // Enumeration to represent user roles
 enum class Role {
@@ -84,7 +85,7 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.width(300.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -94,7 +95,7 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
             value = firstName,
             onValueChange = { firstName = it },
             label = { Text("First Name") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.width(300.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -104,7 +105,7 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
             value = lastName,
             onValueChange = { lastName = it },
             label = { Text("Last Name") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.width(300.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -128,7 +129,7 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
 
         // Row for Back and Register buttons
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.width(300.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // Back Button
@@ -139,16 +140,6 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
             ) {
                 Text("Back")
             }
-
-            // Register Button
-            Button(
-                onClick = {
-                    performRegistration()
-                }
-            ) {
-                Text(text = "Register")
-            }
-
 
             val desktop = if (Desktop.isDesktopSupported()) Desktop.getDesktop() else null
             IconButton(
@@ -161,6 +152,18 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
                 }) {
                 Icon(Icons.Outlined.Info, contentDescription = "Info", modifier=Modifier.size(32.dp))
             }
+
+            // Register Button
+            Button(
+                onClick = {
+                    performRegistration()
+                }
+            ) {
+                Text(text = "Register")
+            }
+
+
+
         }
     }
     LaunchedEffect(Unit) {
@@ -174,42 +177,40 @@ fun registrationPage(onRegistrationSuccessful: () -> Unit, onBack: () -> Unit) {
 // Composable function for the DropdownTextField used for selecting user roles
 @Composable
 fun dropdownTextField(role: Role, onRoleChange: (Role) -> Unit) {
+    Box(modifier = Modifier.width(300.dp)) { // Set the width of the Box to match the TextField
+        var expanded by remember { mutableStateOf(false) }
+        var selectedRole by remember { mutableStateOf(role) }
+        val anchor = Modifier.width(300.dp) // Ensure the DropdownMenu anchors to the full width
 
-    // State variables for dropdown visibility and selected text
-    var expanded by remember { mutableStateOf(false) }
-    var text by remember { mutableStateOf(role.name) }
-
-    // TextField with dropdown functionality
-    TextField(
-        value = text,
-        onValueChange = { text = it },
-        modifier = Modifier.fillMaxWidth(),
-        readOnly = true, // Prevent manual input
-        placeholder = {
-            Text("Choose your role", color = Color.Gray) // Set the prompt text
-        },
-        trailingIcon = {
-            IconButton(onClick = { expanded = true }) {
-                Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
+        TextField(
+            value = selectedRole.name,
+            onValueChange = { /* Ignored as the TextField is read-only */ },
+            readOnly = true,
+            modifier = anchor,
+            label = { Text("Role") },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = "Expand Dropdown",
+                    modifier = Modifier.clickable { expanded = true }
+                )
             }
-        }
-    )
-    // DropdownMenu to display role options
-    if (expanded) {
+        )
+
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            }
+            onDismissRequest = { expanded = false },
+            modifier = anchor // Apply the anchor Modifier to DropdownMenu as well
         ) {
-            for (item in Role.values()) {
-                // DropdownMenuItem for each role option
-                DropdownMenuItem(onClick = {
-                    onRoleChange(item)
-                    text = item.name
-                    expanded = false
-                }) {
-                    Text(text = item.name)
+            Role.values().forEach { selection ->
+                DropdownMenuItem(
+                    onClick = {
+                        selectedRole = selection
+                        onRoleChange(selection)
+                        expanded = false
+                    }
+                ) {
+                    Text(text = selection.name)
                 }
             }
         }
