@@ -89,7 +89,7 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
     }
 
     Column() {
-        TopBar(userName = appData.user?.first_name ?: "User", onSignOut = onSignOut)
+        TopBar(userName = appData.user?.first_name ?: "User",userRole = appData.user?.auth_level ?: "unknown", onSignOut = onSignOut)
 
         Row(
             modifier = Modifier
@@ -190,35 +190,37 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                         }
                     })
             }
-
-            Column(
-                modifier = Modifier.weight(1f).padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally // Centers the children horizontally
-            ) {
-                CreateCourseRoomSection(
-                    currentTerm = currentTerm.value,
-                    subjects = subjects,
-                    user = appData.user,
-                    onCreateCourseRoom = { roomName, roomCode ->
-                        runBlocking {
-                            launch {
-                                val response = apiClient.createRoom(roomName, roomCode, UUID.fromString(appData.user!!.userId))
-                                if (response.status == HttpStatusCode.Created) {
-                                    val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
-                                    appData.currRoom = createdRoom
-                                    onGoToWhiteboard()
+            if (appData.user?.auth_level != "student") {
+                Column(
+                    modifier = Modifier.weight(1f).padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally // Centers the children horizontally
+                ) {
+                    CreateCourseRoomSection(
+                        currentTerm = currentTerm.value,
+                        subjects = subjects,
+                        user = appData.user,
+                        onCreateCourseRoom = { roomName, roomCode ->
+                            runBlocking {
+                                launch {
+                                    val response =
+                                        apiClient.createRoom(roomName, roomCode, UUID.fromString(appData.user!!.userId))
+                                    if (response.status == HttpStatusCode.Created) {
+                                        val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
+                                        appData.currRoom = createdRoom
+                                        onGoToWhiteboard()
+                                    }
                                 }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun TopBar(userName: String, onSignOut: () -> Unit) {
+fun TopBar(userName: String, userRole: String, onSignOut: () -> Unit) {
     val desktop = if (Desktop.isDesktopSupported()) Desktop.getDesktop() else null
     Row(
         modifier = Modifier
@@ -229,11 +231,21 @@ fun TopBar(userName: String, onSignOut: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            "Welcome back, $userName!",
-            style = MaterialTheme.typography.h4,
-            color = Color.White
-        )
+        // Nesting a Column for the welcome message and user role
+        Column {
+            Text(
+                "Welcome back, $userName!",
+                style = MaterialTheme.typography.h4,
+                color = Color.White
+            )
+            Text(
+                "Current Authorization: $userRole",
+                style = MaterialTheme.typography.subtitle1,
+                color = Color.White
+            )
+        }
+
+        // Action buttons
         Row {
             IconButton(
                 onClick = {
@@ -243,14 +255,15 @@ fun TopBar(userName: String, onSignOut: () -> Unit) {
                         }
                     }
                 }) {
-                Icon(Icons.Outlined.Info, contentDescription = "Info", tint = Color.White, modifier=Modifier.size(32.dp))
+                Icon(Icons.Outlined.Info, contentDescription = "Info", tint = Color.White, modifier = Modifier.size(32.dp))
             }
             IconButton(onClick = onSignOut) {
-                Icon(Icons.Filled.ExitToApp, contentDescription = "Sign out", tint = Color.White, modifier=Modifier.size(32.dp))
+                Icon(Icons.Filled.ExitToApp, contentDescription = "Sign out", tint = Color.White, modifier = Modifier.size(32.dp))
             }
         }
     }
 }
+
 @Composable
 fun RoomCard(room: Room, onClick: () -> Unit, onCloseClick: (String) -> Unit) {
     Card(
