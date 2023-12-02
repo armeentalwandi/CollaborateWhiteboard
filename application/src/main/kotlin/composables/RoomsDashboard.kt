@@ -190,28 +190,30 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                         }
                     })
             }
-
-            Column(
-                modifier = Modifier.weight(1f).padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally // Centers the children horizontally
-            ) {
-                CreateCourseRoomSection(
-                    currentTerm = currentTerm.value,
-                    subjects = subjects,
-                    user = appData.user,
-                    onCreateCourseRoom = { roomName, roomCode ->
-                        runBlocking {
-                            launch {
-                                val response = apiClient.createRoom(roomName, roomCode, UUID.fromString(appData.user!!.userId))
-                                if (response.status == HttpStatusCode.Created) {
-                                    val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
-                                    appData.currRoom = createdRoom
-                                    onGoToWhiteboard()
+            if (appData.user?.auth_level != "student") {
+                Column(
+                    modifier = Modifier.weight(1f).padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally // Centers the children horizontally
+                ) {
+                    CreateCourseRoomSection(
+                        currentTerm = currentTerm.value,
+                        subjects = subjects,
+                        user = appData.user,
+                        onCreateCourseRoom = { roomName, roomCode ->
+                            runBlocking {
+                                launch {
+                                    val response =
+                                        apiClient.createRoom(roomName, roomCode, UUID.fromString(appData.user!!.userId))
+                                    if (response.status == HttpStatusCode.Created) {
+                                        val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
+                                        appData.currRoom = createdRoom
+                                        onGoToWhiteboard()
+                                    }
                                 }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
