@@ -5,4 +5,5 @@ data class RoomData(
     var roomName: String,
     var roomCode: String,
     var createdBy: String,
+    var isCourse: Boolean = false
 )

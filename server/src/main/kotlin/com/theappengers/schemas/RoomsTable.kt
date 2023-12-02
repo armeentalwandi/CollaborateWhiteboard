@@ -2,13 +2,8 @@ package com.theappengers.schemas
 
 import Room
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.update
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.Serial
@@ -20,25 +15,34 @@ object RoomsTable : UUIDTable("Rooms") {
     val roomName = varchar("room_name", 255)
     val roomCode = varchar("room_code", 255).uniqueIndex()  // Assuming codes are 10 characters long and unique
     val createdBy = reference("created_by", UsersTable)
+    val isCourse = bool("is_course")
 }
 
-fun RoomsTable.createRoom(roomName: String, roomCode: String, createdBy: UUID): Room? {
-    var roomRow : ResultRow? = null
+fun RoomsTable.createRoom(roomName: String, roomCode: String, createdBy: UUID, isCourse: Boolean): Room? {
+    var roomRow: ResultRow? = null
     transaction {
-        val generatedKey = RoomsTable.insert {
-            it[RoomsTable.roomName] = roomName
-            it[RoomsTable.roomCode] = roomCode
-            it[RoomsTable.createdBy] = createdBy
-        } get RoomsTable.id
+        val exists = RoomsTable.select {
+            ((RoomsTable.roomName eq roomName) and (RoomsTable.createdBy eq createdBy))
+        }.any() || (isCourse && RoomsTable.select { (RoomsTable.roomName eq roomName) and (RoomsTable.roomCode eq roomCode)}.any())
 
-        roomRow = RoomsTable.select { RoomsTable.id eq generatedKey }.singleOrNull()
+        if (!exists) {
+            val generatedKey = RoomsTable.insert {
+                it[RoomsTable.roomName] = roomName
+                it[RoomsTable.roomCode] = roomCode
+                it[RoomsTable.createdBy] = createdBy
+                it[RoomsTable.isCourse] = isCourse
+            } get RoomsTable.id
+
+            roomRow = RoomsTable.select { RoomsTable.id eq generatedKey }.singleOrNull()
+        }
     }
 
     return if (roomRow != null) Room(
-        roomId = roomRow!![id].value.toString(),
+        roomId = roomRow!![RoomsTable.id].value.toString(),
         roomName = roomRow!![RoomsTable.roomName],
         roomCode = roomRow!![RoomsTable.roomCode],
         createdBy = roomRow!![RoomsTable.createdBy].value.toString(),
+        isCourse = roomRow!![RoomsTable.isCourse]
     ) else null
 }
 
@@ -52,7 +56,7 @@ fun RoomsTable.findRoomByCode(roomCode: String): Room? {
                 roomName = row[roomName],
                 roomCode = row[RoomsTable.roomCode],
                 createdBy = row[createdBy].value.toString(),
-//            createdAt = roomRow!![RoomsTable.createdAt]
+                isCourse = row[isCourse]
             )
         }
     }
@@ -68,7 +72,7 @@ fun RoomsTable.findRoomById(roomId: UUID): Room? {
             roomName = row[roomName],
             roomCode = row[roomCode],
             createdBy = row[createdBy].value.toString(),
-//            createdAt = roomRow!![RoomsTable.createdAt]
+            isCourse = row[isCourse]
         )
     }
     return room
@@ -91,6 +95,5 @@ fun RoomsTable.deleteRoom(roomId: UUID): Boolean {
     transaction { deletedRows = deleteWhere { RoomsTable.id eq roomId } }
     return deletedRows > 0 // Returns true if at least one row was deleted
 }
-
 
 

@@ -124,9 +124,10 @@ class ApiClient {
         return client.delete(url)
     }
 
-    suspend fun createRoom(roomName: String, roomCode: String, createdBy: UUID): HttpResponse {
+    suspend fun createRoom(roomName: String, roomCode: String, createdBy: UUID, isCourse: Boolean): HttpResponse {
         val url = "$baseUrl/rooms/create"
-        val roomData = RoomData(roomName, roomCode, createdBy.toString())
+        val roomData = RoomData(roomName, roomCode, createdBy.toString(), isCourse)
+
         return client.post(url) {
             contentType(ContentType.Application.Json)
             setBody(Json.encodeToString(roomData))
