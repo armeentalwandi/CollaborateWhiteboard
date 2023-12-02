@@ -14,37 +14,29 @@ object RoomsToUsersTable : IntIdTable("RoomsToUsers") {
 
 fun RoomsToUsersTable.addUserToRoom(roomId: UUID, userId: UUID) {
     transaction {
-        RoomsToUsersTable.insert {
-            it[RoomsToUsersTable.roomId] = roomId
-            it[RoomsToUsersTable.userId] = userId
+        val exists = RoomsToUsersTable.select {
+            (RoomsToUsersTable.roomId eq roomId) and (RoomsToUsersTable.userId eq userId)
+        }.any()
+
+        if (!exists) {
+            RoomsToUsersTable.insert {
+                it[RoomsToUsersTable.roomId] = roomId
+                it[RoomsToUsersTable.userId] = userId
+            }
         }
     }
 }
 
-//
-//fun RoomsToUsersTable.addUserToRoom(roomCode: String, userId: UUID) {
-//    transaction {
-//        var room = RoomsTable.select {
-//            RoomsTable.roomCode eq roomCode
-//        }.firstOrNull()
-//
-//        // Check if a room with the given roomCode exists
-//        if (room != null) {
-//            // Insert a new entry into the RoomsToUsersTable
-//            RoomsToUsersTable.insert {
-//                it[RoomsToUsersTable.roomId] = room[RoomsTable.id].value
-//                it[RoomsToUsersTable.userId] = userId
-//            }
-//        } else {
-//
-//        }
-//    }
-//}
 
 fun RoomsToUsersTable.removeUserFromRoom(roomId: UUID, userId: UUID) {
     transaction {
         RoomsToUsersTable.deleteWhere {
             (RoomsToUsersTable.userId eq userId) and (RoomsToUsersTable.roomId eq roomId)
+        }
+
+        // If all users have been removed from a room, delete the room
+        if (!RoomsToUsersTable.select { RoomsToUsersTable.roomId eq roomId }.any()) {
+            RoomsTable.deleteRoom(roomId)
         }
     }
 }

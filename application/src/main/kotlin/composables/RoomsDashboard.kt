@@ -136,12 +136,16 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                                     val response = apiClient.createRoom(
                                         roomName,
                                         generateRandomRoomCode(),
-                                        UUID.fromString(appData.user!!.userId)
+                                        UUID.fromString(appData.user!!.userId),
+                                        isCourse = false
                                     )
                                     if (response.status == HttpStatusCode.Created) {
                                         val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
                                         appData.currRoom = createdRoom
                                         onGoToWhiteboard()
+                                    } else {
+                                        errorMessage = "Could not create room, this room may already exist!"
+                                        showErrorDialog = true
                                     }
                                 }
                             }
@@ -177,7 +181,8 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                                                 appData.currRoom = foundRoom
                                                 onGoToWhiteboard()
                                             } else {
-                                                // show message pop-up to say that room wasn't found
+                                                errorMessage = "There is no room with the given Room Code"
+                                                showErrorDialog = true
                                             }
                                         }
                                     } catch (e: Exception) {
@@ -203,11 +208,14 @@ fun roomsDashboard(appData: AppData, onSignOut: () -> Unit, onGoToWhiteboard: ()
                             runBlocking {
                                 launch {
                                     val response =
-                                        apiClient.createRoom(roomName, roomCode, UUID.fromString(appData.user!!.userId))
+                                        apiClient.createRoom(roomName, roomCode, UUID.fromString(appData.user!!.userId), isCourse = true)
                                     if (response.status == HttpStatusCode.Created) {
                                         val createdRoom = Json.decodeFromString<Room>(response.bodyAsText())
                                         appData.currRoom = createdRoom
                                         onGoToWhiteboard()
+                                    } else {
+                                        errorMessage = "Could not create room, a room for this course may already have been created by a professor!"
+                                        showErrorDialog = true
                                     }
                                 }
                             }

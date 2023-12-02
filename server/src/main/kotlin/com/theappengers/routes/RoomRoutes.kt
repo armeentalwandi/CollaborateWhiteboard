@@ -13,7 +13,7 @@ import java.util.*
 fun Routing.roomRoutes() {
     route("/rooms") {
         get("/user/{userId}") {
-            val userId = call.parameters["userId"]?: null
+            val userId = call.parameters["userId"]
             if (userId != null) {
                 val userIdUUID = UUID.fromString(userId)
                 val rooms = RoomsToUsersTable.fetchUserRooms(userIdUUID)
@@ -24,7 +24,7 @@ fun Routing.roomRoutes() {
         }
 
         get("/room/{roomCode}") {
-            val roomCode = call.parameters["roomCode"]?: null
+            val roomCode = call.parameters["roomCode"]
             if (roomCode != null) {
                 val room = RoomsTable.findRoomByCode(roomCode)
                 if (room != null) {
@@ -63,7 +63,7 @@ fun Routing.roomRoutes() {
             val room = call.receive<RoomData>() // Assuming Room is your data class
             // Add logic to create the room in the database
             try {
-                val createdRoom = RoomsTable.createRoom(room.roomName, room.roomCode, UUID.fromString(room.createdBy))
+                val createdRoom = RoomsTable.createRoom(room.roomName, room.roomCode, UUID.fromString(room.createdBy), room.isCourse)
                 if (createdRoom != null) {
                     RoomsToUsersTable.addUserToRoom(UUID.fromString(createdRoom.roomId), UUID.fromString(createdRoom.createdBy))
                     call.respond(HttpStatusCode.Created, createdRoom)

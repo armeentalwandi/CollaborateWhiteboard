@@ -20,7 +20,7 @@ class ShapeTest {
     fun setUp() {
         appData = AppData(
             user = User("userId", "email@example.com", "John", "Doe", "alias", listOf()),
-            currRoom = Room("roomId", "roomName", "roomCode", "roomOwner", listOf())
+            currRoom = Room("roomId", "roomName", "roomCode", "roomOwner")
         )
     }
 
