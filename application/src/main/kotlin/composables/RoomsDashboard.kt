@@ -363,6 +363,7 @@ fun CreateCourseRoomSection(
                     subjects.forEach { subject ->
                         DropdownMenuItem(onClick = {
                             selectedSubject = subject
+                            selectedCourse = null
                             subjectsDropdownExpanded = false
                             println("Selected Subject: $selectedSubject")
                             coroutineScope.launch {
