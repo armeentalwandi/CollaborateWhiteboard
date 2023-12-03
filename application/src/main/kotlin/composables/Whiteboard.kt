@@ -20,11 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.material.SnackbarHost
-import androidx.compose.material.SnackbarHostState
-import androidx.compose.material.SnackbarResult
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -43,7 +39,7 @@ import kotlin.math.sqrt
 import androidx.compose.ui.graphics.drawscope.Stroke as Stroke2
 
 @Composable
-fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, appData: AppData) {
+fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, appData: AppData, canEdit: Boolean) {
 
     // Variable declarations for managing state and storing whiteboard elements
     var strokeSize by remember { mutableStateOf(1f) } // Define slider value here
@@ -73,8 +69,6 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
 
     val clipboardManager = LocalClipboardManager.current
     var showCustomSnackbar by remember { mutableStateOf(false) }
-
-
 
     // Retrieving strokes from the server on composition for a specific user
 
@@ -218,6 +212,12 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
 
         Spacer(modifier = Modifier.weight(1f)) // Dynamic spacing to push the row to the right
 
+        val authText = if (canEdit) { "Editing Access" } else { "Viewing Access"}
+
+        TextButton(onClick = {}, enabled = false) {
+            Text(text = "Privilege: $authText")
+        }
+
         TextButton(onClick = {
             clipboardManager.setText(AnnotatedString(appData.currRoom!!.roomCode))
             showCustomSnackbar = true
@@ -238,165 +238,233 @@ fun whiteboard(selectedMode: String = "DRAW_LINES", shape: ShapeType? = null, ap
 
 
     // Handling drag gestures for drawing and other interactions on the canvas
-    Canvas(modifier = Modifier
-        .fillMaxSize()
-        .onSizeChanged { size ->
-            canvasSize = size.toSize()
-        }
-        .background(Color.White)
-        .pointerInput(selectedMode) {
-                            detectDragGestures (
-                                onDragStart = { offset ->
-                                    // Logic for handling drag start based on the selected mode
-                                    initialDragPosition = offset
-                                    if (selectedMode == "DRAW_LINES") {
-                                        currentStroke = Stroke(offset, userId = appData.user!!.userId, strokeId = UUID.randomUUID().toString(), roomId = appData.currRoom!!.roomId, lines = mutableListOf())
-                                    } else if (selectedMode == "DRAW_SHAPES") {
-                                        if (currentShape == ShapeType.Circle) {
-                                            currentStroke = createCircleStroke(center = offset, initialRadius=0f, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, appData = appData)
-                                        } else if (currentShape == ShapeType.Rectangle) {
-                                            currentStroke = createRectangleStroke(topLeft = offset, bottomRight = offset, colour = colour, strokeSize = strokeSize, appData = appData)
-                                        } else if (currentShape == ShapeType.Triangle) {
-                                            currentStroke = createTriangleStroke(vertex1 = offset, dragEnd = Offset(offset.x + 1f, offset.y + 1f), colour = colour, strokeSize = strokeSize, canvasSize=canvasSize, appData = appData)                             }
-                                    } else if (selectedMode == "SELECT_LINES") {
-                                        if (isMovingStroke) {
-                                            moveStart = offset
-                                        } else {
-                                            selectionStart = offset
-                                            selectionEnd = offset
-                                            isSelecting = true
-                                        }
-                                    }
-                                },
-
-                                onDrag = { change, dragAmount ->
-                                    // Logic for handling drag (e.g., drawing lines, erasing, drawing shapes)
-                                    change.consume()
-                                    val startPosition = change.position - dragAmount
-                                    val endPosition = change.position
-                                    if (isWithinCanvasBounds(startPosition, canvasSize) && isWithinCanvasBounds(endPosition, canvasSize)) {
-                                        if (selectedMode == "DRAW_LINES") {
-                                            // Check if the line is within the canvas bounds
-                                            val line = Line(
-                                                id = if (lines.size > 0) { lines.last().id + 1 } else {0},
-                                                color = colour,
-                                                startOffset = startPosition,
-                                                endOffset = endPosition,
-                                                strokeWidth = strokeSize.toDp()
-                                            )
-                                            currentStroke?.lines?.add(line)
-                                            lines.add(line)
-                                        } else if (selectedMode == "ERASE") {
-                                            // ERASE LOGIC
-                                            // Find if any stroke has overlapping lines.
-                                            var erasableStroke: Stroke? = null
-                                            for (stroke in strokes) {
-                                                for (line in stroke.lines) {
-                                                    if (doLinesCross(startPosition, endPosition, line.startOffset, line.endOffset)) {
-                                                        erasableStroke = stroke
-                                                        break
-                                                    }
-                                                }
-                                            }
-
-                                            if (erasableStroke != null) {
-                                                // Send deletion to the server
-                                                runBlocking {
-                                                    launch {
-                                                        apiClient.deleteStroke(UUID.fromString(erasableStroke.strokeId))
-                                                    }
-                                                }
-                                                strokes.remove(erasableStroke)
-                                                erasableStroke.lines.forEach {
-                                                    lines.remove(it)
-                                                }
-                                                // Add the deleted stroke to history for undo functionality
-                                                undoStack.add(Action.DeleteStroke(erasableStroke))
-                                                redoStack.clear()  // Clear redo stack when a new action is done
-                                            }
-
-                                        } else if (selectedMode == "DRAW_SHAPES") {
-                                            if (currentShape == ShapeType.Circle) {
-                                                val radius = distanceBetweenTwoPoints(currentStroke!!.center!!, endPosition)
-                                                currentStroke = createCircleStroke(currentStroke!!.center!!, radius, colour, strokeSize, canvasSize, appData = appData)
-                                            } else if (currentShape == ShapeType.Rectangle) {
-                                                currentStroke = createRectangleStroke(topLeft = currentStroke!!.startOffset, bottomRight = endPosition, colour = colour, strokeSize = strokeSize, appData = appData)
-                                            } else if (currentShape == ShapeType.Triangle) {
-                                                currentStroke = createTriangleStroke(vertex1 = currentStroke!!.startOffset, dragEnd = endPosition, colour = colour, strokeSize = strokeSize, canvasSize=canvasSize,appData = appData)
-                                            }
-                                        } else if (selectedMode == "SELECT_LINES") {
-                                            if (isMovingStroke) {
-                                                val currentMoveStart = moveStart
-                                                if (currentMoveStart != null) {
-                                                    selectedStrokes.forEach { stroke ->
-                                                        val canMove = stroke.lines.all { line ->
-                                                            isLineWithinCanvasBounds(line, dragAmount, canvasSize)
-                                                        }
-                                                        if (canMove) {
-                                                            stroke.lines.forEach { line ->
-                                                                line.startOffset += dragAmount
-                                                                line.endOffset += dragAmount
-                                                            }
-                                                            stroke.startOffset += dragAmount
-                                                            stroke.endOffset += dragAmount
-                                                        }
-                                                    }
-                                                    moveStart = change.position
-                                                }
-                                            } else {
-                                                // Handle selection box update
-                                                selectionEnd = change.position
-                                            }
-                                        }
-                                    }
-                                },
-                                onDragEnd = {
-                                    // Logic for handling drag end (e.g., completing strokes)
-                                    if (selectedMode == "DRAW_LINES") {
-                                        currentStroke?.endOffset = currentStroke?.lines?.last()?.endOffset!!
-                                        strokes.add(currentStroke!!)
-                                        undoStack.add(Action.AddStroke(currentStroke!!))
-                                        redoStack.clear()  // Clear redo stack when a new action is done
-                                    } else if (selectedMode == "DRAW_SHAPES") {
-                                        strokes.add(currentStroke!!)
-                                        lines.addAll(currentStroke!!.lines)
-                                        undoStack.add(Action.AddStroke(currentStroke!!))
-                                        redoStack.clear()  // Clear redo stack when a new action is done
-                                    } else if (selectedMode == "SELECT_LINES") {
-                                        if (isMovingStroke) {
-                                            CoroutineScope(Dispatchers.IO).launch {
-                                                updateStrokesInDatabase(selectedStrokes)
-                                                isMovingStroke = false
-                                                selectedStrokes.clear()
-                                                moveStart = null
-                                            }
-                                        } else if (selectionStart != null && selectionEnd != null){
-                                            selectedStrokes.clear()
-                                            strokes.forEach { stroke ->
-                                                if (isStrokeInSelectionBox(stroke, selectionStart!!, selectionEnd!!)) {
-                                                    selectedStrokes.add(stroke)  // Add stroke to selectedStrokes if it's within the selection box
-                                                }
-                                            }
-
-                                            // Reset the selection box
-                                            selectionStart = null
-                                            selectionEnd = null
-                                            isSelecting = false
-                                            isMovingStroke = selectedStrokes.isNotEmpty()
-                                        }
-                                    }
-
-                                    runBlocking {
-                                        launch {
-                                            if (currentStroke != null){
-                                                apiClient.postStroke(toSerializable(currentStroke!!))
-                                            }
-                                        }
-                                    }
-                                    currentStroke = null
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .onSizeChanged { size ->
+                canvasSize = size.toSize()
+            }
+            .background(Color.White)
+            .pointerInput(selectedMode) {
+                detectDragGestures(
+                    onDragStart = { offset ->
+                        // Logic for handling drag start based on the selected mode
+                        if (canEdit) {
+                            initialDragPosition = offset
+                            if (selectedMode == "DRAW_LINES") {
+                                currentStroke = Stroke(
+                                    offset,
+                                    userId = appData.user!!.userId,
+                                    strokeId = UUID.randomUUID().toString(),
+                                    roomId = appData.currRoom!!.roomId,
+                                    lines = mutableListOf()
+                                )
+                            } else if (selectedMode == "DRAW_SHAPES") {
+                                if (currentShape == ShapeType.Circle) {
+                                    currentStroke = createCircleStroke(
+                                        center = offset,
+                                        initialRadius = 0f,
+                                        colour = colour,
+                                        strokeSize = strokeSize,
+                                        canvasSize = canvasSize,
+                                        appData = appData
+                                    )
+                                } else if (currentShape == ShapeType.Rectangle) {
+                                    currentStroke = createRectangleStroke(
+                                        topLeft = offset,
+                                        bottomRight = offset,
+                                        colour = colour,
+                                        strokeSize = strokeSize,
+                                        appData = appData
+                                    )
+                                } else if (currentShape == ShapeType.Triangle) {
+                                    currentStroke = createTriangleStroke(
+                                        vertex1 = offset,
+                                        dragEnd = Offset(offset.x + 1f, offset.y + 1f),
+                                        colour = colour,
+                                        strokeSize = strokeSize,
+                                        canvasSize = canvasSize,
+                                        appData = appData
+                                    )
                                 }
-                            )
-        },
+                            } else if (selectedMode == "SELECT_LINES") {
+                                if (isMovingStroke) {
+                                    moveStart = offset
+                                } else {
+                                    selectionStart = offset
+                                    selectionEnd = offset
+                                    isSelecting = true
+                                }
+                            }
+                        }
+                    },
+
+                    onDrag = { change, dragAmount ->
+                        // Logic for handling drag (e.g., drawing lines, erasing, drawing shapes)
+                        if (canEdit) {
+                            change.consume()
+                            val startPosition = change.position - dragAmount
+                            val endPosition = change.position
+                            if (isWithinCanvasBounds(startPosition, canvasSize) && isWithinCanvasBounds(
+                                    endPosition,
+                                    canvasSize
+                                )
+                            ) {
+                                if (selectedMode == "DRAW_LINES") {
+                                    // Check if the line is within the canvas bounds
+                                    val line = Line(
+                                        id = if (lines.size > 0) {
+                                            lines.last().id + 1
+                                        } else {
+                                            0
+                                        },
+                                        color = colour,
+                                        startOffset = startPosition,
+                                        endOffset = endPosition,
+                                        strokeWidth = strokeSize.toDp()
+                                    )
+                                    currentStroke?.lines?.add(line)
+                                    lines.add(line)
+                                } else if (selectedMode == "ERASE") {
+                                    // ERASE LOGIC
+                                    // Find if any stroke has overlapping lines.
+                                    var erasableStroke: Stroke? = null
+                                    for (stroke in strokes) {
+                                        for (line in stroke.lines) {
+                                            if (doLinesCross(
+                                                    startPosition,
+                                                    endPosition,
+                                                    line.startOffset,
+                                                    line.endOffset
+                                                )
+                                            ) {
+                                                erasableStroke = stroke
+                                                break
+                                            }
+                                        }
+                                    }
+
+                                    if (erasableStroke != null) {
+                                        // Send deletion to the server
+                                        runBlocking {
+                                            launch {
+                                                apiClient.deleteStroke(UUID.fromString(erasableStroke.strokeId))
+                                            }
+                                        }
+                                        strokes.remove(erasableStroke)
+                                        erasableStroke.lines.forEach {
+                                            lines.remove(it)
+                                        }
+                                        // Add the deleted stroke to history for undo functionality
+                                        undoStack.add(Action.DeleteStroke(erasableStroke))
+                                        redoStack.clear()  // Clear redo stack when a new action is done
+                                    }
+
+                                } else if (selectedMode == "DRAW_SHAPES") {
+                                    if (currentShape == ShapeType.Circle) {
+                                        val radius = distanceBetweenTwoPoints(currentStroke!!.center!!, endPosition)
+                                        currentStroke = createCircleStroke(
+                                            currentStroke!!.center!!,
+                                            radius,
+                                            colour,
+                                            strokeSize,
+                                            canvasSize,
+                                            appData = appData
+                                        )
+                                    } else if (currentShape == ShapeType.Rectangle) {
+                                        currentStroke = createRectangleStroke(
+                                            topLeft = currentStroke!!.startOffset,
+                                            bottomRight = endPosition,
+                                            colour = colour,
+                                            strokeSize = strokeSize,
+                                            appData = appData
+                                        )
+                                    } else if (currentShape == ShapeType.Triangle) {
+                                        currentStroke = createTriangleStroke(
+                                            vertex1 = currentStroke!!.startOffset,
+                                            dragEnd = endPosition,
+                                            colour = colour,
+                                            strokeSize = strokeSize,
+                                            canvasSize = canvasSize,
+                                            appData = appData
+                                        )
+                                    }
+                                } else if (selectedMode == "SELECT_LINES") {
+                                    if (isMovingStroke) {
+                                        val currentMoveStart = moveStart
+                                        if (currentMoveStart != null) {
+                                            selectedStrokes.forEach { stroke ->
+                                                val canMove = stroke.lines.all { line ->
+                                                    isLineWithinCanvasBounds(line, dragAmount, canvasSize)
+                                                }
+                                                if (canMove) {
+                                                    stroke.lines.forEach { line ->
+                                                        line.startOffset += dragAmount
+                                                        line.endOffset += dragAmount
+                                                    }
+                                                    stroke.startOffset += dragAmount
+                                                    stroke.endOffset += dragAmount
+                                                }
+                                            }
+                                            moveStart = change.position
+                                        }
+                                    } else {
+                                        // Handle selection box update
+                                        selectionEnd = change.position
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    onDragEnd = {
+                        // Logic for handling drag end (e.g., completing strokes)
+                        if (canEdit) {
+                            if (selectedMode == "DRAW_LINES") {
+                                currentStroke?.endOffset = currentStroke?.lines?.last()?.endOffset!!
+                                strokes.add(currentStroke!!)
+                                undoStack.add(Action.AddStroke(currentStroke!!))
+                                redoStack.clear()  // Clear redo stack when a new action is done
+                            } else if (selectedMode == "DRAW_SHAPES") {
+                                strokes.add(currentStroke!!)
+                                lines.addAll(currentStroke!!.lines)
+                                undoStack.add(Action.AddStroke(currentStroke!!))
+                                redoStack.clear()  // Clear redo stack when a new action is done
+                            } else if (selectedMode == "SELECT_LINES") {
+                                if (isMovingStroke) {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        updateStrokesInDatabase(selectedStrokes)
+                                        isMovingStroke = false
+                                        selectedStrokes.clear()
+                                        moveStart = null
+                                    }
+                                } else if (selectionStart != null && selectionEnd != null) {
+                                    selectedStrokes.clear()
+                                    strokes.forEach { stroke ->
+                                        if (isStrokeInSelectionBox(stroke, selectionStart!!, selectionEnd!!)) {
+                                            selectedStrokes.add(stroke)  // Add stroke to selectedStrokes if it's within the selection box
+                                        }
+                                    }
+
+                                    // Reset the selection box
+                                    selectionStart = null
+                                    selectionEnd = null
+                                    isSelecting = false
+                                    isMovingStroke = selectedStrokes.isNotEmpty()
+                                }
+                            }
+
+                            runBlocking {
+                                launch {
+                                    if (currentStroke != null) {
+                                        apiClient.postStroke(toSerializable(currentStroke!!))
+                                    }
+                                }
+                            }
+                            currentStroke = null
+                        }
+                    }
+                )
+            },
     ) {
         // Drawing current strokes and lines
         currentStroke?.lines?.forEach { currStrokeLine ->

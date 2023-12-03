@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import apiClient
@@ -29,7 +30,6 @@ import models.fromSerializable
 import java.awt.Desktop
 import java.awt.FileDialog
 import java.awt.Frame
-import java.io.IOException
 import java.net.URI
 import java.util.*
 import kotlin.math.max
@@ -50,6 +50,8 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
     var selectedShape by remember { mutableStateOf(ShapeType.Circle) }
     val showShapesDropdownMenu = remember { mutableStateOf(false) }
     val dropdownMenuPosition = remember { mutableStateOf(Offset(0f, 0f)) }
+    val canEdit = (data.currRoom!!.isCourse && data.user!!.auth_level == "professor") || (!data.currRoom!!.isCourse)
+
 
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -77,7 +79,7 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
                     Mode.entries.forEach { mode ->
                         if (mode == Mode.DRAW_SHAPES) {
                             // Shapes button with dropdown logic
-                            modeButton(Mode.DRAW_SHAPES, onClick = { showShapesDropdownMenu.value = true })
+                            modeButton(Mode.DRAW_SHAPES, enabled = canEdit, onClick = { showShapesDropdownMenu.value = true })
                             // DropdownMenu for shapes
                             DropdownMenu(
                                 expanded = showShapesDropdownMenu.value,
@@ -110,10 +112,9 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
                                 }
                             }
                         } else {
-                            // Other mode buttons
-                            modeButton(mode) {
+                            modeButton(mode, {
                                 selectedMode = mode
-                            }
+                            }, canEdit)
                         }
                     }
 
@@ -144,7 +145,7 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
                         .fillMaxWidth()
                         .padding(8.dp)
                 ) {
-                    whiteboard(appData = data, selectedMode = selectedMode.name, shape = selectedShape)
+                    whiteboard(appData = data, selectedMode = selectedMode.name, shape = selectedShape, canEdit = canEdit)
                 }
             }
         }
@@ -153,12 +154,13 @@ fun twoColumnLayout(data: AppData, onBack: () -> Unit) {
 
 // Composable function for a button representing a drawing mode
 @Composable
-fun modeButton(mode: Mode, onClick: () -> Unit) {
+fun modeButton(mode: Mode, onClick: () -> Unit, enabled: Boolean) {
     // TextButton with an Image representing the drawing mode
     TextButton(
         onClick = onClick,
         modifier = Modifier
-            .padding(8.dp)
+            .padding(8.dp),
+        enabled = enabled
     ) {
         Image(
             painter = painterResource(mode.resource),
