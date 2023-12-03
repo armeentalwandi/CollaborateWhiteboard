@@ -53,6 +53,7 @@ fun RoomsToUsersTable.fetchUserRooms(userId: UUID): List<Room> {
                     roomName = resultRow[RoomsTable.roomName],
                     roomCode = resultRow[RoomsTable.roomCode],
                     createdBy = resultRow[RoomsTable.createdBy].value.toString(),
+                    isCourse = resultRow[RoomsTable.isCourse]
                 )
             )
         }
