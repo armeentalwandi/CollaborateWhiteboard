@@ -1,92 +1,188 @@
 # TheAppengers
 
 
+## Installation Guide
+For your convenience, we have provided 3 methods of installing and running the various.  
+There are two ways of running the application locally, the server can be run in a docker container or through the terminal.  
 
-## Getting started
+### Installing the Cloud Deployed version of the Appenger's Whiteboard (Recommended)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+The first and simplest option to use the Appenger's Whiteboard is by simply navigating to
+`./releases/final/remote/`. Here you will find `AppengersWhiteboard_REMOTE.dmg` installer for `macOS`. This version of the client has
+been configured to connect to our Google Cloud Platform instance of our server and our database hosted on Google Cloud SQL. 
+Once you install this, you are good to go to use the cloud deployed version of the Appenger's Whiteboard.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+##### Notes: 
+- Avoid drawing too many strokes on whiteboard too quickly. Due to limitations put on our server by GCP, if too many requests are sent at once from the client, the connection might be refused by the server causing the app to crash. If this happens, please restart the app and continue using as normal.
+- Performance might be a little slow or laggy while using the remote deployed version of the app due to the fact that it is deployed on the cloud on a budget-friendly instance.
 
-## Add your files
+### Installing a local version of the Appenger's Whiteboard (Backup)
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+Running the local version of the client has much better performance due to the fact that the server, database, and client are running locally. So if you have time, please do experiment with this version of our app.
+You can find local versions of the local client installer at `./releases/final/local/` or `./releases/final/docker-local/`. It is called `AppengersWhiteboard_LOCAL.dmg`. This same client can be used for both methods of running the server (below).
 
+#### Running Server through Docker
+This is incredibly easy to do. Ensure you have Docker installed on your computer. **Simply navigate to the root of this repository** and execute:
+```bash
+./run-server-docker.sh
 ```
-cd existing_repo
-git remote add origin https://git.uwaterloo.ca/atalwand/theappengers.git
-git branch -M main
-git push -uf origin main
+The server is now running, and you can use the local version of the Appenger's Whiteboard.
+
+#### Running the server locally with JAR file
+This is also very easy to do, ensure you have Java installed on your computer. Then **from the root of the repository** execute the following command in the terminal.
+```bash
+java -jar ./releases/final/local/server-all.jar
 ```
+The server should now be running on your computer, and the local version of the Appenger's Whiteboard can be run.
 
-## Integrate with your tools
+##### Notes:
+- Both local versions of the server use a local sqlite database. The docker method will create the database in the container. The JAR method will create/use a database.sqlite file in the root directory.
 
-- [ ] [Set up project integrations](https://git.uwaterloo.ca/atalwand/theappengers/-/settings/integrations)
+The behaviour of the client is identical in all forms of the installation. If the server is running locally, then data is persisted locally.  
 
-## Collaborate with your team
+If the remote client is used, then the data is persisted on the cloud and users running the remote version of the app can access the same data across devices thus making the application collaborative.  
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+If the local client is used, then the data is persisted on the local database and multiple instances of the local version on the same device will be synchronized.
 
-## Test and Deploy
+[//]: # ()
+[//]: # ()
+[//]: # (## Getting started)
 
-Use the built-in continuous integration in GitLab.
+[//]: # ()
+[//]: # (To make it easy for you to get started with GitLab, here's a list of recommended next steps.)
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+[//]: # ()
+[//]: # (Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom]&#40;#editing-this-readme&#41;!)
 
-***
+[//]: # ()
+[//]: # (## Add your files)
 
-# Editing this README
+[//]: # ()
+[//]: # (- [ ] [Create]&#40;https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file&#41; or [upload]&#40;https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file&#41; files)
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+[//]: # (- [ ] [Add files using the command line]&#40;https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line&#41; or push an existing Git repository with the following command:)
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+[//]: # ()
+[//]: # (```)
 
-## Name
-Choose a self-explaining name for your project.
+[//]: # (cd existing_repo)
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+[//]: # (git remote add origin https://git.uwaterloo.ca/atalwand/theappengers.git)
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+[//]: # (git branch -M main)
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+[//]: # (git push -uf origin main)
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+[//]: # (```)
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+[//]: # ()
+[//]: # (## Integrate with your tools)
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+[//]: # ()
+[//]: # (- [ ] [Set up project integrations]&#40;https://git.uwaterloo.ca/atalwand/theappengers/-/settings/integrations&#41;)
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+[//]: # ()
+[//]: # (## Collaborate with your team)
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+[//]: # ()
+[//]: # (- [ ] [Invite team members and collaborators]&#40;https://docs.gitlab.com/ee/user/project/members/&#41;)
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+[//]: # (- [ ] [Create a new merge request]&#40;https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html&#41;)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+[//]: # (- [ ] [Automatically close issues from merge requests]&#40;https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically&#41;)
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+[//]: # (- [ ] [Enable merge request approvals]&#40;https://docs.gitlab.com/ee/user/project/merge_requests/approvals/&#41;)
 
-## License
-For open source projects, say how it is licensed.
+[//]: # (- [ ] [Set auto-merge]&#40;https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html&#41;)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+[//]: # ()
+[//]: # (## Test and Deploy)
+
+[//]: # ()
+[//]: # (Use the built-in continuous integration in GitLab.)
+
+[//]: # ()
+[//]: # (- [ ] [Get started with GitLab CI/CD]&#40;https://docs.gitlab.com/ee/ci/quick_start/index.html&#41;)
+
+[//]: # (- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing&#40;SAST&#41;]&#40;https://docs.gitlab.com/ee/user/application_security/sast/&#41;)
+
+[//]: # (- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy]&#40;https://docs.gitlab.com/ee/topics/autodevops/requirements.html&#41;)
+
+[//]: # (- [ ] [Use pull-based deployments for improved Kubernetes management]&#40;https://docs.gitlab.com/ee/user/clusters/agent/&#41;)
+
+[//]: # (- [ ] [Set up protected environments]&#40;https://docs.gitlab.com/ee/ci/environments/protected_environments.html&#41;)
+
+[//]: # ()
+[//]: # (***)
+
+[//]: # ()
+[//]: # (# Editing this README)
+
+[//]: # ()
+[//]: # (When you're ready to make this README your own, just edit this file and use the handy template below &#40;or feel free to structure it however you want - this is just a starting point!&#41;. Thank you to [makeareadme.com]&#40;https://www.makeareadme.com/&#41; for this template.)
+
+[//]: # ()
+[//]: # (## Suggestions for a good README)
+
+[//]: # (Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.)
+
+[//]: # ()
+[//]: # (## Name)
+
+[//]: # (Choose a self-explaining name for your project.)
+
+[//]: # ()
+[//]: # (## Description)
+
+[//]: # (Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.)
+
+[//]: # ()
+[//]: # (## Badges)
+
+[//]: # (On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.)
+
+[//]: # ()
+[//]: # (## Visuals)
+
+[//]: # (Depending on what you are making, it can be a good idea to include screenshots or even a video &#40;you'll frequently see GIFs rather than actual videos&#41;. Tools like ttygif can help, but check out Asciinema for a more sophisticated method.)
+
+[//]: # ()
+[//]: # (## Usage)
+
+[//]: # (Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.)
+
+[//]: # ()
+[//]: # (## Support)
+
+[//]: # (Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.)
+
+[//]: # ()
+[//]: # (## Roadmap)
+
+[//]: # (If you have ideas for releases in the future, it is a good idea to list them in the README.)
+
+[//]: # ()
+[//]: # (## Contributing)
+
+[//]: # (State if you are open to contributions and what your requirements are for accepting them.)
+
+[//]: # ()
+[//]: # (For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.)
+
+[//]: # ()
+[//]: # (You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.)
+
+[//]: # ()
+[//]: # (## Authors and acknowledgment)
+
+[//]: # (Show your appreciation to those who have contributed to the project.)
+
+[//]: # ()
+[//]: # (## License)
+
+[//]: # (For open source projects, say how it is licensed.)
+
+[//]: # ()
+[//]: # (## Project status)
+
+[//]: # (If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.)
