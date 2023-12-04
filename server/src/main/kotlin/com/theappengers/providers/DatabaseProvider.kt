@@ -22,7 +22,7 @@ class DatabaseProvider() {
         var dbUser = ""
         var dbPassword = ""
 
-        if (ENVIRONMENT == "local") {
+        if (ENVIRONMENT == "local" || ENVIRONMENT == "docker-local") {
             dbUrl = "jdbc:sqlite:database.sqlite"
             driver = "org.sqlite.JDBC"
             dbUser = "admin"

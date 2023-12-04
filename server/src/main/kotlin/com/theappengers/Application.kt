@@ -18,7 +18,7 @@ val ENVIRONMENT = "local"
 fun main() {
 
     var host = "127.0.0.1"
-    if (ENVIRONMENT == "remote") {
+    if (ENVIRONMENT == "remote" || ENVIRONMENT == "docker-local") {
         host = "0.0.0.0"
     } else if (ENVIRONMENT == "local") {
         host = "127.0.0.1"
