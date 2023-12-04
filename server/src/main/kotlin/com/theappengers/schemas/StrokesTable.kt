@@ -1,9 +1,9 @@
 package com.theappengers.schemas
 
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.select
+import SerializableStroke
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.util.*
 
 object StrokesTable : Table() {
@@ -18,20 +18,47 @@ data class UpdateStrokeRequest(
     val serializedStroke: String
 )
 
+fun StrokesTable.createStroke(stroke: SerializableStroke, serializedStroke: String) {
+    val userid = stroke.userId
+    val strokeid = stroke.strokeId
+    val roomId = stroke.roomId
+
+    transaction {
+        StrokesTable.insert {
+            it[StrokesTable.strokeId] = UUID.fromString(strokeid)
+            it[StrokesTable.roomId] = UUID.fromString(roomId)
+            it[StrokesTable.userId] = UUID.fromString(userid)
+            it[StrokesTable.serializedStroke] = serializedStroke
+        }
+    }
+}
+
+fun StrokesTable.getRoomStrokes(roomId: String?): List<String> {
+    var allStrokes: List<String> = listOf()
+    transaction {
+        allStrokes = StrokesTable.select {
+            StrokesTable.roomId eq UUID.fromString(roomId)
+        }.map { it[serializedStroke] }
+    }
+    return allStrokes
+}
+
+fun StrokesTable.deleteStroke(strokeId: String) {
+    val strokeIdUUID = UUID.fromString(strokeId)
+    transaction {
+        StrokesTable.deleteWhere { StrokesTable.strokeId eq strokeIdUUID }
+    }
+}
+
 fun StrokesTable.updateStrokeRow(updateRequest: UpdateStrokeRequest) {
     transaction {
-        // Find the row with the specified strokeId
         val row = StrokesTable.select { strokeId eq updateRequest.strokeId }
             .singleOrNull()
 
         if (row != null) {
-            // Update the serializedStroke column
             StrokesTable.update({ strokeId eq updateRequest.strokeId }) {
                 it[serializedStroke] = updateRequest.serializedStroke
             }
-        } else {
-            // Handle the case where the row with the given strokeId doesn't exist
-            // You may want to throw an exception or handle it differently
         }
     }
 }
