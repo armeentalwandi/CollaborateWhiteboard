@@ -3,6 +3,7 @@ package com.theappengers.plugins
 import com.theappengers.configs.JwtConfig
 import com.theappengers.schemas.UsersTable
 import com.theappengers.schemas.findUserById
+import com.theappengers.services.UsersService
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -17,7 +18,7 @@ fun Application.configureSecurity() {
                 if (userId.isNull || userId.asString() == null) {
                     null
                 } else {
-                    val user = UsersTable.findUserById(UUID.fromString(userId.asString()))
+                    val user = UsersService().findUserById(UUID.fromString(userId.asString()))
                     user?.let { JWTPrincipal(credential.payload) }
                 }
             }

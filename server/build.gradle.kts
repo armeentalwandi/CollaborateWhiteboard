@@ -53,7 +53,14 @@ dependencies {
 
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
 
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 configure<AppEngineAppYamlExtension> {
