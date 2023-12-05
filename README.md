@@ -35,7 +35,7 @@ Once you install this, you are good to go to use the cloud deployed version of t
 
 ##### Notes: 
 - Avoid drawing too many strokes on whiteboard too quickly. Due to limitations put on our server by GCP, if too many requests are sent at once from the client, the connection might be refused by the server causing the app to crash. If this happens, please restart the app and continue using as normal.
-- Performance might be a little slow or laggy while using the remote deployed version of the app due to the fact that it is deployed on the cloud on a budget-friendly instance.
+- Performance might be a little slow or laggy while using the remote deployed version of the app due to the fact that it is deployed on the cloud on a budget-friendly instance. It might be a little slow especially during start up. 
 
 ### Installing a local version of the Appenger's Whiteboard (Backup)
 
