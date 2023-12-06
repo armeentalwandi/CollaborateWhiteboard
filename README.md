@@ -26,7 +26,10 @@ There are two ways of running the application locally, the server can be run in 
 
 [Release 1.0.0](https://git.uwaterloo.ca/atalwand/theappengers/-/releases/1.0.0)
 
+
 ### Installing the Cloud Deployed version of the Appenger's Whiteboard (Recommended)
+
+Everything you need to install any version of this application can be found here: https://git.uwaterloo.ca/atalwand/theappengers/-/tree/main/releases?ref_type=heads
 
 The first and simplest option to use the Appenger's Whiteboard is by simply navigating to
 `./releases/final/remote/`. Here you will find `AppengersWhiteboard_REMOTE.dmg` installer for `macOS`. This version of the client has
