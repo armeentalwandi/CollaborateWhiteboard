@@ -14,6 +14,8 @@ Team Members: Rahul Bangre, Harsh Dave, Reyansh Patange, Armeen Talwandi
 
 [Discussion](https://git.uwaterloo.ca/atalwand/theappengers/-/wikis/Discussion)
 
+[Getting Started](https://git.uwaterloo.ca/atalwand/theappengers/-/wikis/Getting-Started)
+
 ## Installation Guide
 For your convenience, we have provided 3 methods of installing and running the various.  
 There are two ways of running the application locally, the server can be run in a docker container or through the terminal.  
