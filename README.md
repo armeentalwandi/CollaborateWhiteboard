@@ -6,7 +6,7 @@ Team Members: Rahul Bangre, Harsh Dave, Reyansh Patange, Armeen Talwandi
 
 [Project Description](https://git.uwaterloo.ca/atalwand/theappengers/-/wikis/Project-Description)
 
-[Meeting Minutes](https://git.uwaterloo.ca/atalwand/theappengers/-/wikis/Meeting-Minutes)
+[Meeting Minutes: They are ordered by date.](https://git.uwaterloo.ca/atalwand/theappengers/-/wikis/Meeting-Minutes)
 
 [Requirements](https://git.uwaterloo.ca/atalwand/theappengers/-/wikis/Requirements)
 
