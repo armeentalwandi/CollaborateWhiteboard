@@ -32,7 +32,7 @@ There are two ways of running the application locally, the server can be run in 
 Everything you need to install any version of this application can be found here: https://git.uwaterloo.ca/atalwand/theappengers/-/tree/main/releases?ref_type=heads
 
 The first and simplest option to use the Appenger's Whiteboard is by simply navigating to
-`./releases/final/remote/`. Here you will find `AppengersWhiteboard_REMOTE.dmg` installer for `macOS`. This version of the client has
+`./releases/final/remote/` **from the root of this repository**. Here you will find `AppengersWhiteboard_REMOTE.dmg` installer for `macOS`. This version of the client has
 been configured to connect to our Google Cloud Platform instance of our server and our database hosted on Google Cloud SQL. 
 Once you install this, you are good to go to use the cloud deployed version of the Appenger's Whiteboard.
 
