@@ -4,7 +4,18 @@ Our Project: Collaborative Whiteboard
 
 Team Members: Rahul Bangre, Harsh Dave, Reyansh Patange, Armeen Talwandi
 
-[Project Description](https://git.uwaterloo.ca/atalwand/theappengers/-/wikis/Project-Description)
+
+**Project Goals:**
+
+Main Goal: To develop a collaborative whiteboard platform to enable professors and students to interactively share and contribute to visual content in real-time, enhancing the learning experience and promoting active participation.
+
+* *Direct Goals:*
+  * Create a real-time, user-friendly interface where professors can present and students can contribute simultaneously.
+  * Ensure stability and scalability to accommodate large class sizes without performance issues.
+* *Indirect Goals:*
+  * Foster increased engagement and understanding among students through interactive learning.
+  * Encourage collaborative problem-solving and idea sharing within the classroom environment.
+
 
 [Meeting Minutes: They are ordered by date.](https://git.uwaterloo.ca/atalwand/theappengers/-/wikis/Meeting-Minutes)
 
